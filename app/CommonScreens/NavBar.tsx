@@ -1,12 +1,12 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Picker, Icon, Assets, Image, Colors } from 'react-native-ui-lib';
-import bell_icon from "../../../assets/bell_icon.png"
+import bell_icon from "../../assets/bell_icon.png"
 
 export default function NavBar() {
 
     return (
-        <View className=" bg-white  justify-center items-center p-4 pt-0">
+        <View className="p-2 bg-white ">
             <View className=' w-full flex-1 flex-row justify-between  items-center'>
                 <View>
                     <Icon source={{uri:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Hamburger_icon.svg/1200px-Hamburger_icon.svg.png"}} size={27} tintColor='black' />

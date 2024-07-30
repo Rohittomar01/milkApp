@@ -1,10 +1,17 @@
 import React, { useEffect } from 'react';
-import { View,Platform } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { View, Platform } from 'react-native';
+// import DateTimePicker from '@react-native-community/datetimepicker';
+
 import { useForm, Controller } from 'react-hook-form';
-import { Button,Text,TouchableOpacity } from 'react-native-ui-lib';
+import { Button, Text, TouchableOpacity, DateTimePicker, TextField } from 'react-native-ui-lib';
 
 const DeliveryForm = () => {
+
+    const currentDate = new Date();
+    const monthsToAdd = 1;
+    const endDate = new Date(currentDate);
+    endDate.setMonth(currentDate.getMonth() + monthsToAdd);
+
     const { control, handleSubmit, setValue, watch } = useForm({
         defaultValues: {
             deliveryShift: 'Morning',
@@ -12,7 +19,7 @@ const DeliveryForm = () => {
             planType: 'Daily',
             days: [] as string[],
             startDate: new Date(),
-            endDate: new Date(),
+            endDate: endDate,
         },
     });
 
@@ -138,7 +145,7 @@ const DeliveryForm = () => {
                 />
             </View>
             <View className="p-6 mt-2 bg-white flex justify-between flex-row items-center">
-                <View>
+                <View className='flex flex-col'>
                     <Text className="text-lg font-bold ">Start From</Text>
                     <Controller
                         name="startDate"
@@ -146,12 +153,13 @@ const DeliveryForm = () => {
                         render={({ field: { onChange, value } }) => (
                             <DateTimePicker
                                 value={value}
-                                mode="date"
-                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                onChange={(event: any, selectedDate: Date | undefined) => onChange(selectedDate || value)}
-                                style={{ width: '100%' }}
-                            />
-                        )}
+                                minimumDate={new Date()}
+                                onChange={(date: Date) => onChange(date)}
+                                placeholder={'Select Start date'}
+                                mode={'date'}
+
+                            />)}
+
                     />
                 </View>
 
@@ -163,10 +171,11 @@ const DeliveryForm = () => {
                         render={({ field: { onChange, value } }) => (
                             <DateTimePicker
                                 value={value}
-                                mode="date"
-                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                onChange={(event: any, selectedDate: Date | undefined) => onChange(selectedDate || value)}
-                                style={{ width: '100%' }}
+                                minimumDate={new Date()}
+                                onChange={(date: Date) => onChange(date)}
+                                placeholder={'Select End date'}
+                                mode={'date'}
+
                             />
                         )}
                     />
@@ -174,8 +183,8 @@ const DeliveryForm = () => {
             </View>
 
             <View className="p-6 bg-white mt-2">
-                <Text className="text-lg font-bold mb-2">Product Details</Text>
-                <Text className="text-sm">Pure A2 Buffalo Milk: Powerhouse of Nutrition</Text>
+                <Text className="text-lg font-bold mb-2">Note:</Text>
+                <Text className="text-sm text-gray-400">Pure A2 Buffalo Milk: Powerhouse of Nutrition</Text>
             </View>
             <View className="p-4 bg-white">
                 <Button label="Submit" className="bg-black" onPress={handleSubmit(onSubmit)} />

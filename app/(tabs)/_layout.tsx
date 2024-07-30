@@ -34,6 +34,24 @@ export default function TabLayout() {
           ),
         }}
       />
+        <Tabs.Screen
+        name="AddToCart"
+        options={{
+          title: 'Cart',
+          tabBarIcon: ({ color }) => <FontAwesome size={28} name="cog" color={color} />,
+          headerLeft: () => (
+            <TouchableOpacity>
+              <FontAwesome
+                name="arrow-left"
+                size={20}
+                color="black"
+                onPress={() => router.back()} // Use router.back() for back navigation
+                style={{ marginLeft: 17 }}
+              />
+            </TouchableOpacity>
+          ),
+        }}
+      />
     </Tabs>
   );
 }

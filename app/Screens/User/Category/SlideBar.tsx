@@ -5,24 +5,24 @@ import { Image, Text } from 'react-native-ui-lib';
 interface CategoryItem {
     id: number;
     image: string;
-    description: string;
+    categoryname: string;
 }
 
 const items: CategoryItem[] = [
     {
         id: 1,
-        image: 'https://milkpot.com/wp-content/uploads/2022/11/Banner-2.png',
-        description: 'Milk'
+        image: 'https://static.vecteezy.com/system/resources/previews/024/549/128/non_2x/a-bottle-of-milk-and-glass-of-milk-on-a-basket-table-with-transparent-background-nutritious-and-healthy-dairy-products-png.png',
+        categoryname: 'Milk'
     },
     {
         id: 2,
-        image: 'https://greenandgreyagro.com/cdn/shop/products/istockphoto-1346355665-612x612__1_-removebg-preview_600x.png?v=1678794011',
-        description: 'Clarified Butter'
+        image: 'https://m.media-amazon.com/images/I/51ap7l-rmYL.jpg',
+        categoryname: 'Ghee'
     },
     {
         id: 3,
-        image: 'https://i.pinimg.com/736x/84/22/70/8422703d976d4ec8e3e2e46f98c2ead1.jpg',
-        description: 'Dahi'
+        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3uYxy90DIT15rySOrDaYtr70Yag43WaGJDw&s',
+        categoryname: 'Dahi'
     },
 ];
 
@@ -42,7 +42,7 @@ export default function SlideBar() {
                     className="w-20 h-20 rounded-lg"
                 />
                 <Text className="text-center mt-1">
-                    {item.description}
+                    {item.categoryname}
                 </Text>
             </TouchableOpacity>
         );

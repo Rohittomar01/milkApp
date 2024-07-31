@@ -1,15 +1,15 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Picker, Icon, Assets, Image, Colors } from 'react-native-ui-lib';
-import bell_icon from "../../assets/bell_icon.png"
+import Feather from '@expo/vector-icons/Feather';
 
 export default function NavBar() {
 
     return (
-        <View className="p-2 bg-white ">
+        <View className="p-4 bg-white  ">
             <View className=' w-full flex-1 flex-row justify-between  items-center'>
                 <View>
-                    <Icon source={{uri:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Hamburger_icon.svg/1200px-Hamburger_icon.svg.png"}} size={27} tintColor='black' />
+                    <Feather name="menu" size={30} color="black" />
                 </View>
                 <View>
                     <Image
@@ -18,7 +18,7 @@ export default function NavBar() {
                     />
                 </View>
                 <View>
-                    <Icon source={bell_icon} size={42} />
+                <Feather name="bell" size={24} color="black" />
                 </View>
             </View>
             <View className="flex-row items-center justify-center space-x-2 ">

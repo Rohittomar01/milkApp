@@ -2,6 +2,9 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
 import { TouchableOpacity } from 'react-native-ui-lib';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 export default function TabLayout() {
   const router = useRouter();
@@ -20,11 +23,11 @@ export default function TabLayout() {
         name="ShowCategory"
         options={{
           title: 'Category',
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="cog" color={color} />,
+          tabBarIcon: ({ color }) => <MaterialIcons name="category" size={24} color={color} />,
           headerLeft: () => (
             <TouchableOpacity>
-              <FontAwesome
-                name="arrow-left"
+              <AntDesign
+                name="arrowleft"
                 size={20}
                 color="black"
                 onPress={() => router.back()} // Use router.back() for back navigation
@@ -34,15 +37,15 @@ export default function TabLayout() {
           ),
         }}
       />
-        <Tabs.Screen
+      <Tabs.Screen
         name="AddToCart"
         options={{
           title: 'Cart',
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="cog" color={color} />,
+          tabBarIcon: ({ color }) => <FontAwesome5 name="shopping-cart" size={24} color={color} />,
           headerLeft: () => (
             <TouchableOpacity>
-              <FontAwesome
-                name="arrow-left"
+              <AntDesign
+                name="arrowleft"
                 size={20}
                 color="black"
                 onPress={() => router.back()} // Use router.back() for back navigation
@@ -52,6 +55,7 @@ export default function TabLayout() {
           ),
         }}
       />
+      
     </Tabs>
   );
 }

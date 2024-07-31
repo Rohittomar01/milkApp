@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
-import { Card, Button, Checkbox,Dividers } from 'react-native-ui-lib';
+import { Card, Button, Checkbox, Dividers } from 'react-native-ui-lib';
 import { Rating } from 'react-native-ratings';
 
 export default function SubscriptionCard() {
@@ -27,7 +27,7 @@ export default function SubscriptionCard() {
 
     return (
         <View>
-            <Card className="p-6">
+            <Card className="p-6 ">
                 <View className="flex-row mb-4">
                     <Image
                         source={{ uri: 'https://static.wixstatic.com/media/1a2594_238ac51e79d143bb882f894011f5be29~mv2.jpg/v1/fill/w_560,h_554,al_c,q_80,usm_0.66_1.00_0.01,enc_auto/1a2594_238ac51e79d143bb882f894011f5be29~mv2.jpg' }}
@@ -92,7 +92,7 @@ export default function SubscriptionCard() {
 
                 <View className="flex-row justify-between space-x-4">
                     <Button
-                    
+
                         label="Change"
                         onPress={handleChange}
                         className="flex-1  "

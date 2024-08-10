@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, TouchableOpacity, GestureResponderEvent } from 'react-native';
 import { Carousel, Icon, Text } from 'react-native-ui-lib';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import _ from 'lodash';
+import { router } from 'expo-router';
 
 interface CarouselItem {
     id: number;
@@ -36,8 +37,8 @@ const items: CarouselItem[] = [
     },
 ];
 
-const renderItem = (item: CarouselItem): JSX.Element => (
-    <View key={item.id} className=' flex-1  items-center p-5'>
+const renderItem = (item: CarouselItem, index: number): JSX.Element => (
+    <View key={index} className=' flex-1  items-center p-5'>
         <Icon source={{ uri: item.image }} size={300} />
         <Text className='text-2xl font-bold my-2'>{item.title}</Text>
         <Text className='text-xl mb-2'>{item.subtitle}</Text>
@@ -46,47 +47,53 @@ const renderItem = (item: CarouselItem): JSX.Element => (
 );
 
 const StarterCarousel: React.FC = () => {
+    const ref = useRef()
     const [currentPage, setCurrentPage] = useState<number>(0);
 
+    const totalPages = items.length;
+
     const handleSkip = (event: GestureResponderEvent) => {
-        console.log('Skip button pressed');
+        router.push("(tabs)");
     };
 
     const handleNext = () => {
-        setCurrentPage((prevPage) => (prevPage + 1) % items.length);
-    };
-
-    const handlePrevious = () => {
-        setCurrentPage((prevPage) => (prevPage - 1 + items.length) % items.length);
+        if (currentPage < totalPages - 1) {
+            setCurrentPage(currentPage);
+            if (ref.current) {
+                ref.current.goToPage(currentPage + 1, true);
+            }
+        } else {
+            router.push("(tabs)");
+        }
     };
 
     return (
         <View className=' bg-white  p-1 h-full'>
             <View className=' flex justify-end w-full items-end'>
-                <TouchableOpacity onPress={handlePrevious} className='p-2  rounded  w-24'>
-                    <Text className='text-black text-lg'>Skip</Text>
-                </TouchableOpacity>
             </View>
             <View className='bg-white flex-1 items-center  justify-center pt-6 mt-2'>
                 <Carousel
+                    ref={ref}
                     pageWidth={340}
-                    onChangePage={(page) => setCurrentPage(page)}
+                    onChangePage={(page: number) => setCurrentPage(page)}
                     animated
                     pageControlPosition='under'
-                    pagingEnabled
                     containerMarginHorizontal={10}
+                    allowAccessibleLayout
+                    pagingEnabled
+                    showCounter
                 >
-                    {_.map(items, (item: CarouselItem) => renderItem(item))}
+                    {_.map(items, (item: CarouselItem, index: number) => renderItem(item, index))}
                 </Carousel>
             </View>
-                <View className='flex-row  px-1 justify-between items-center w-full '>
-                    <TouchableOpacity onPress={handleSkip} className='p-2  rounded '>
-                        <Text className='text-black text-lg'>Skip</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleNext} className='p-2 mx-2 rounded'>
-                        <Ionicons name="chevron-forward-circle-outline" size={45} color="black" />
-                    </TouchableOpacity>
-                </View>
+            <View className='flex-row  px-4 justify-between items-center w-full '>
+                <TouchableOpacity onPress={handleSkip} className='p-2  rounded '>
+                    <Text className='text-black text-lg'>Skip</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleNext} className='p-2 mx-2 rounded'>
+                    <Ionicons name="chevron-forward-circle-outline" size={45} color="black" />
+                </TouchableOpacity>
+            </View>
         </View>
     );
 };

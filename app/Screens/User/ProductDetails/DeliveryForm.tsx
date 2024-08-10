@@ -1,12 +1,32 @@
-import React, { useEffect } from 'react';
-import { View, Platform } from 'react-native';
-// import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useEffect, useState } from 'react';
+import { View } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import { Button, Text, TouchableOpacity, DateTimePicker } from 'react-native-ui-lib';
+import { router } from 'expo-router';
+import { postData } from '../../../Services/ServerServices';
 
-import { useForm, Controller } from 'react-hook-form';
-import { Button, Text, TouchableOpacity, DateTimePicker, TextField } from 'react-native-ui-lib';
+interface productData {
+    _id: string;
+    image: string;
+    title: string;
+    description: string;
+    price: string;
+    discount: string;
+    category: string;
+    quantity: number;
+    submitted_by: string;
+    createdAt: string;
+    updatedAt: string;
+}
 
-const DeliveryForm = () => {
+interface Props {
+    data: productData;
+}
 
+
+const DeliveryForm: React.FC<Props> = ({ data }) => {
     const currentDate = new Date();
     const monthsToAdd = 1;
     const endDate = new Date(currentDate);
@@ -16,36 +36,51 @@ const DeliveryForm = () => {
         defaultValues: {
             deliveryShift: 'Morning',
             quantity: 1,
-            planType: 'Daily',
-            days: [] as string[],
-            startDate: new Date(),
-            endDate: endDate,
+            plant_type: 'Daily',
+            total_days: [] as string[],
+            subscription_started_at: new Date(),
+            subscription_ended_at: endDate,
         },
     });
 
-    const planType = watch('planType');
-    const days = watch('days');
-
-    const updateDays = (planType: string) => {
-        if (planType === 'Daily') {
-            setValue('days', ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
-        } else if (planType === 'Alternate Days') {
-            setValue('days', ['Sun', 'Tue', 'Thu', 'Sat']);
-        } else {
-            // Custom selection remains unchanged
-        }
-    };
+    const planType = watch('plant_type');
+    const quantity = watch('quantity');
+    const days = watch('total_days');
+    const [alternateDaysToggle, setAlternateDaysToggle] = useState<boolean>(true);
+    const [totalPrice, setTotalPrice] = useState<number>(parseFloat(data.price));
 
     useEffect(() => {
         updateDays(planType);
     }, [planType]);
+
+    useEffect(() => {
+        const flexiblePrice = quantity * parseFloat(data.price);
+        setTotalPrice(flexiblePrice);
+    }, [quantity, data.price]);
+
+    const updateDays = (planType: string) => {
+        if (planType === 'Daily') {
+            setValue('total_days', ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+        } else if (planType === 'Alternate Days') {
+            setValue('total_days', alternateDaysToggle ? ['Sun', 'Tue', 'Thu', 'Sat'] : ['Mon', 'Wed', 'Fri']);
+        } else {
+            setValue('total_days', []);
+        }
+    };
 
     const handleDayPress = (day: string) => {
         if (planType === 'Custom') {
             const newDays = days.includes(day)
                 ? days.filter((d: string) => d !== day)
                 : [...days, day];
-            setValue('days', newDays);
+            setValue('total_days', newDays);
+        }
+    };
+
+    const handleAlternateDaysPress = () => {
+        if (planType === 'Alternate Days') {
+            setAlternateDaysToggle(!alternateDaysToggle);
+            setValue('total_days', !alternateDaysToggle ? ['Sun', 'Tue', 'Thu', 'Sat'] : ['Mon', 'Wed', 'Fri']);
         }
     };
 
@@ -55,17 +90,28 @@ const DeliveryForm = () => {
         return false;
     };
 
-    const onSubmit = (data: any) => {
-        console.log(data);
+    const onSubmit = async (formData: any) => {
+        const product_id: string = data._id
+        const total_price = totalPrice
+        const submitted_by = "user"
+        const user_id = "1"
+        const submittedData = { ...formData, total_price, product_id, user_id, submitted_by };
+        console.log(submittedData);
+        try {
+            const response = await postData("addtocart/addtocarts_add", submittedData);
+            alert(response.message)
+            router.push("AddToCart")
+        } catch (error) {
+            console.error(error)
+        }
     };
 
     return (
         <View className="mt-2">
             <View className="flex justify-between items-center flex-row bg-white p-6">
                 <Text className="text-lg font-bold mb-2">Total Price</Text>
-                <Text className="text-right text-lg font-bold">₹99.00</Text>
+                <Text className="text-right text-lg font-bold">₹{totalPrice.toFixed(2)}</Text>
             </View>
-
             <View className="p-6 bg-white mt-2">
                 <Text className="text-lg font-bold mb-2">Select Delivery Shift</Text>
                 <View className='flex justify-between w-full flex-row items-center'>
@@ -75,10 +121,10 @@ const DeliveryForm = () => {
                             control={control}
                             render={({ field: { onChange, value } }) => (
                                 <TouchableOpacity
-                                    onPress={() => onChange(value === 'Morning' ? 'Evening' : 'Morning')}
-                                    className={`py-4 w-24 px-4 rounded-full ${value === 'Morning' ? 'bg-black' : 'bg-gray-800'}`}
+                                    onPress={() => onChange('Morning')}
+                                    className={`py-4 w-24 px-4 rounded-full bg-black`}
                                 >
-                                    <Text className="text-white text-center">{value}</Text>
+                                    <Text className="text-white text-center">Morning</Text>
                                 </TouchableOpacity>
                             )}
                         />
@@ -89,12 +135,22 @@ const DeliveryForm = () => {
                             control={control}
                             render={({ field: { onChange, value } }) => (
                                 <View className="flex-row items-center">
-                                    <TouchableOpacity onPress={() => onChange(Math.max(1, value - 1))}>
-                                        <Text className="text-lg font-bold text-green-600  ">-</Text>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            const newValue = Math.max(1, value - 1);
+                                            onChange(newValue);
+                                        }}
+                                    >
+                                        <FontAwesome6 name="minus" size={20} color="green" />
                                     </TouchableOpacity>
                                     <Text className="mx-4">{value}</Text>
-                                    <TouchableOpacity onPress={() => onChange(value + 1)}>
-                                        <Text className="text-lg font-bold text-green-600">+</Text>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            const newValue = value + 1;
+                                            onChange(newValue);
+                                        }}
+                                    >
+                                        <MaterialIcons name="add" size={24} color="green" />
                                     </TouchableOpacity>
                                 </View>
                             )}
@@ -106,7 +162,7 @@ const DeliveryForm = () => {
             <View className="p-6 bg-white mt-2">
                 <Text className="text-lg font-bold mb-2">Plan Type</Text>
                 <Controller
-                    name="planType"
+                    name="plant_type"
                     control={control}
                     render={({ field: { onChange, value } }) => (
                         <View className="flex-row mb-4">
@@ -126,14 +182,20 @@ const DeliveryForm = () => {
                     )}
                 />
                 <Controller
-                    name="days"
+                    name="total_days"
                     control={control}
-                    render={({ field: { onChange, value } }) => (
+                    render={({ field: { value } }) => (
                         <View className="flex-row flex-wrap">
                             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
                                 <TouchableOpacity
                                     key={day}
-                                    onPress={() => handleDayPress(day)}
+                                    onPress={() => {
+                                        if (planType === 'Alternate Days') {
+                                            handleAlternateDaysPress();
+                                        } else {
+                                            handleDayPress(day);
+                                        }
+                                    }}
                                     disabled={isDayDisabled(day)}
                                     className={`py-2 px-4 m-1 rounded-full ${isDayDisabled(day) ? 'bg-green-800' : value.includes(day) ? 'bg-green-800' : 'bg-gray-500'}`}
                                 >
@@ -145,40 +207,45 @@ const DeliveryForm = () => {
                 />
             </View>
             <View className="p-6 mt-2 bg-white flex justify-between flex-row items-center">
-                <View className='flex flex-col'>
-                    <Text className="text-lg font-bold ">Start From</Text>
-                    <Controller
-                        name="startDate"
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                            <DateTimePicker
-                                value={value}
-                                minimumDate={new Date()}
-                                onChange={(date: Date) => onChange(date)}
-                                placeholder={'Select Start date'}
-                                mode={'date'}
+                <View className="flex flex-col">
+                    <Text className="text-lg font-bold mb-2">Start From</Text>
+                    <View>
+                        <Controller
+                            name="subscription_started_at"
+                            control={control}
+                            render={({ field: { onChange, value } }) => (
+                                <DateTimePicker
+                                    value={value}
+                                    minimumDate={new Date()}
+                                    onChange={(date: Date) => onChange(date)}
+                                    placeholder={'Select Start date'}
+                                    mode={'date'}
+                                    className=' border border-gray-300 rounded-lg p-2'
 
-                            />)}
-
-                    />
+                                />
+                            )}
+                        />
+                    </View>
                 </View>
 
-                <View>
-                    <Text className="text-lg font-bold">End With</Text>
-                    <Controller
-                        name="endDate"
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                            <DateTimePicker
-                                value={value}
-                                minimumDate={new Date()}
-                                onChange={(date: Date) => onChange(date)}
-                                placeholder={'Select End date'}
-                                mode={'date'}
-
-                            />
-                        )}
-                    />
+                <View className="flex flex-col">
+                    <Text className="text-lg font-bold mb-2">End With</Text>
+                    <View>
+                        <Controller
+                            name="subscription_ended_at"
+                            control={control}
+                            render={({ field: { onChange, value } }) => (
+                                <DateTimePicker
+                                    value={value}
+                                    minimumDate={new Date()}
+                                    onChange={(date: Date) => onChange(date)}
+                                    placeholder={'Select End date'}
+                                    mode={'date'}
+                                    className=' border border-gray-300 rounded-lg p-2'
+                                />
+                            )}
+                        />
+                    </View>
                 </View>
             </View>
 
@@ -187,7 +254,7 @@ const DeliveryForm = () => {
                 <Text className="text-sm text-gray-400">Pure A2 Buffalo Milk: Powerhouse of Nutrition</Text>
             </View>
             <View className="p-4 bg-white">
-                <Button label="Submit" className="bg-black" onPress={handleSubmit(onSubmit)} />
+                <Button label="Add to cart" className="bg-black" onPress={handleSubmit(onSubmit)} />
             </View>
         </View>
     );

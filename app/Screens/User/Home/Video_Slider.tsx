@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getData, ServerURL } from '../../../Services/ServerServices';
 import { View, FlatList, TouchableOpacity, Modal } from 'react-native';
 import { Video, ResizeMode as VideoResizeMode } from 'expo-av';
 import { MaterialIcons } from 'react-native-vector-icons';
@@ -6,26 +7,40 @@ import { Text } from 'react-native-ui-lib';
 import 'nativewind';
 
 interface VideoData {
-    id: string;
-    uri: string;
+    _id: string;
+    video: string;
+    video_type: string;
+    description: string;
+    submitted_by: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
 }
 
-const videoData: VideoData[] = [
-    { id: '1', uri: 'https://cdn.pixabay.com/video/2021/09/18/88948-608446150_tiny.mp4' },
-    { id: '2', uri: 'https://cdn.pixabay.com/video/2021/09/18/88948-608446150_tiny.mp4' },
-    { id: '3', uri: 'https://cdn.pixabay.com/video/2021/09/18/88948-608446150_tiny.mp4' },
-    { id: '4', uri: 'https://cdn.pixabay.com/video/2021/09/18/88948-608446150_tiny.mp4' },
-    { id: '5', uri: 'https://cdn.pixabay.com/video/2021/09/18/88948-608446150_tiny.mp4' },
-];
 
 const VideoSlider = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedVideo, setSelectedVideo] = useState<string>('');
+    const [videos, setVideos] = useState<VideoData[]>([]);
+    useEffect(() => {
+        fetchVidoes();
+    }, []);
+    const fetchVidoes = async () => {
+        try {
+            const response = await getData("video/fetchAllVideos");
+            setVideos(response.videos);
+        } catch (error) {
+            console.error("Error fetching products:", error);
+        }
+    };
+
+
 
     const renderVideoThumbnail = ({ item }: { item: VideoData }) => (
-        <TouchableOpacity onPress={() => handleVideoPress(item.uri)}>
+        <TouchableOpacity onPress={() => handleVideoPress(item.video)}>
             <Video
-                source={{ uri: item.uri }}
+                source={{ uri: `${ServerURL}/videos/${item.video}` }}
                 useNativeControls={false}
                 resizeMode={VideoResizeMode.CONTAIN}
                 shouldPlay={false}
@@ -51,7 +66,7 @@ const VideoSlider = () => {
         >
             <View className="flex-1 justify-center items-center bg-black bg-opacity-80">
                 <Video
-                    source={{ uri: selectedVideo }}
+                    source={{ uri: `${ServerURL}/videos/${selectedVideo}` }}
                     useNativeControls
                     resizeMode={VideoResizeMode.CONTAIN}
                     shouldPlay
@@ -70,9 +85,9 @@ const VideoSlider = () => {
                 </View>
             </View>
             <FlatList
-                data={videoData}
+                data={videos}
                 renderItem={renderVideoThumbnail}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item._id}
                 horizontal
                 showsHorizontalScrollIndicator={false}
             />

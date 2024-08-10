@@ -12,12 +12,13 @@ interface Item {
 }
 interface HomeCarouselProps {
     data: Item[] | string | string[];
+
 }
 
 
 
 
-const HomeCarousel: React.FC<HomeCarouselProps> = ({ data }) => {
+const ProductDetailsCarousel: React.FC<HomeCarouselProps> = ({ data }) => {
     const renderItem = (item: Item, index: any): JSX.Element => (
         <View key={index} style={styles.itemContainer}>
             <Image source={{ uri: `${ServerURL}/images/${item.image}` }} style={styles.image} />
@@ -32,7 +33,6 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ data }) => {
                 onChangePage={() => console.log('page changed')}
                 autoplay
                 animated
-                pageControlPosition='under'
                 containerMarginHorizontal={10}
                 containerPaddingVertical={10}
 
@@ -51,10 +51,10 @@ const styles = StyleSheet.create({
         padding: 10,
     } as ViewStyle,
     image: {
-        width: 330,
-        height: 200,
+        width: 340,
+        height: 220,
         borderRadius: 10,
-        objectFit: "cover"
+        objectFit: "contain"
     } as ImageStyle,
     title: {
         marginTop: 10,
@@ -63,4 +63,4 @@ const styles = StyleSheet.create({
     } as TextStyle,
 });
 
-export default HomeCarousel;
+export default ProductDetailsCarousel;

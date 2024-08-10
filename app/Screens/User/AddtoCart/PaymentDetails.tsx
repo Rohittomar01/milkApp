@@ -9,30 +9,6 @@ const PaymentDetails = () => {
     const deliveryCharges = 0.00;
     const totalPrice = price - discount + deliveryCharges;
 
-    const [isMinPayment, setIsMinPayment] = useState(false);
-    const [isMaxPayment, setIsMaxPayment] = useState(true);
-    const [paymentAmount, setPaymentAmount] = useState(totalPrice);
-
-    const handleMinPaymentChange = () => {
-        setIsMinPayment(!isMinPayment);
-        if (!isMinPayment) {
-            setIsMaxPayment(false);
-            setPaymentAmount(1000.00);
-        } else {
-            setPaymentAmount(totalPrice);
-        }
-    };
-
-    const handleMaxPaymentChange = () => {
-        setIsMaxPayment(!isMaxPayment);
-        if (!isMaxPayment) {
-            setIsMinPayment(false);
-            setPaymentAmount(totalPrice);
-        } else {
-            setPaymentAmount(totalPrice);
-        }
-    };
-
     return (
         <Card className="p-6 mt-2 bg-white">
             <Text className="text-lg font-bold text-black">Payment Details</Text>
@@ -58,28 +34,7 @@ const PaymentDetails = () => {
             <Text className="mt-4 text-center text-green-700">
                 You will save on ₹{discount.toFixed(2)} on this order
             </Text>
-            <View className="mt-2 flex justify-between items-center flex-row space-x-3">
-                <View >
-                    <Checkbox
-                        label="Minimum Amount"
-                        value={isMinPayment}
-                        onValueChange={handleMinPaymentChange}
-                        color='black'
-                    />
-                </View>
-                <View >
-                    <Checkbox
-                        label="Maximum Amount"
-                        value={isMaxPayment}
-                        onValueChange={handleMaxPaymentChange}
-                        color='black'
-                    />
-                </View>
-            </View>
-            <TouchableOpacity className="mt-4 flex-row items-center justify-center bg-black p-2 rounded-lg h-14">
-                <Text className="text-white text-lg font-bold">Proceed to Payment: <Text>₹{paymentAmount.toFixed(2)}</Text></Text>
-                <Ionicons name="arrow-forward" size={20} color="white" className="ml-2" />
-            </TouchableOpacity>
+
         </Card>
     );
 };

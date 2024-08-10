@@ -1,61 +1,80 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import React from 'react';
 import { View, FlatList, TouchableOpacity } from 'react-native';
 import { Image, Text } from 'react-native-ui-lib';
+import { getData, ServerURL } from '../../../Services/ServerServices';
+import useCategoryStore from '../../../store/useCategory';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface CategoryItem {
-    id: number;
+    _id: string;
     image: string;
-    categoryname: string;
+    name: string;
 }
 
-const items: CategoryItem[] = [
-    {
-        id: 1,
-        image: 'https://static.vecteezy.com/system/resources/previews/024/549/128/non_2x/a-bottle-of-milk-and-glass-of-milk-on-a-basket-table-with-transparent-background-nutritious-and-healthy-dairy-products-png.png',
-        categoryname: 'Milk'
-    },
-    {
-        id: 2,
-        image: 'https://m.media-amazon.com/images/I/51ap7l-rmYL.jpg',
-        categoryname: 'Ghee'
-    },
-    {
-        id: 3,
-        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3uYxy90DIT15rySOrDaYtr70Yag43WaGJDw&s',
-        categoryname: 'Dahi'
-    },
-];
 
 export default function SlideBar() {
-    const [selectedId, setSelectedId] = useState<number>(1); // Default selection
 
+    const { category, setCategory } = useCategoryStore()
+    const [selectedId, setSelectedId] = useState<string>(""); // Default selection
+
+    const [categoryData, setCategoryData] = useState<any>([])
+
+    const fetchCategrory = async () => {
+        try {
+            const responce = await getData("category/allCategory_Fetch")
+            if (responce.status) {
+                setCategoryData(responce.categories)
+            }
+        } catch (error) {
+            console.error(error)
+        }
+    }
+    useEffect(() => {
+        fetchCategrory()
+
+    }, [])
+
+    const handleSelect = (item: CategoryItem) => {
+
+        setSelectedId(item._id)
+        setCategory(item.name)
+
+    }
     const renderCategory = ({ item }: { item: CategoryItem }) => {
-        const isSelected = item.id === selectedId;
+        let isSelected = false
+
+        if (category) {
+            isSelected = item.name == category;
+        }
+        else {
+            isSelected = item._id === selectedId
+        }
 
         return (
             <TouchableOpacity
-                onPress={() => setSelectedId(item.id)}
-                className={`m-4 p-2 items-center rounded-lg ${isSelected ? 'bg-blue-50 ' : 'bg-white'}`}
+                onPress={() => handleSelect(item)}
+                className={`p-2   rounded-lg items-center  ${isSelected ? 'bg-blue-50 ' : 'bg-white'}`}
             >
                 <Image
-                    source={{ uri: item.image }}
-                    className="w-20 h-20 rounded-lg"
+                    resizeMode="contain"
+                    source={{ uri: `${ServerURL}/images/${item.image}` }}
+                    className="w-16 h-16 rounded-lg"
                 />
                 <Text className="text-center mt-1">
-                    {item.categoryname}
+                    {item.name}
                 </Text>
             </TouchableOpacity>
         );
     };
 
     return (
-        <View className="bg-white flex justify-center items-center">
+        <View className=" flex items-center w-20">
             <FlatList
-                data={items}
+                data={categoryData}
                 renderItem={renderCategory}
-                keyExtractor={item => item.id.toString()}
-                horizontal
-                showsHorizontalScrollIndicator={false}
+                showsVerticalScrollIndicator={false}
+                keyExtractor={item => item._id.toString()}
                 contentContainerStyle={{ paddingHorizontal: 0 }}
             />
         </View>

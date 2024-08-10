@@ -3,14 +3,20 @@ import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native';
 import { Card, Icon } from 'react-native-ui-lib';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
+import { ServerURL } from '../../../Services/ServerServices';
 
 interface CardItem {
-  id: number;
+  _id: string;
+  image: string;
   title: string;
   description: string;
   price: string;
-  oldPrice: string;
-  imageUrl: string;
+  discount: string;
+  category: string;
+  quantity: number;
+  submitted_by: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 
@@ -22,15 +28,24 @@ interface PopularProductsProps {
 const PopularProducts: React.FC<PopularProductsProps> = ({ heading, data }) => {
   const renderCards = ({ item }: { item: CardItem }) => {
     return (
-      <Card onPress={() => router.push("Screens/User/ProductDetails/ProductDetails")} key={item.id} elevation={6} enableShadow className="m-2 p-2 rounded-lg w-40">
-        <Image source={{ uri: item.imageUrl }} className="h-28 w-full rounded-lg" />
-        <Text className="mt-2 text-lg font-bold">{item.title}</Text>
+      <Card onPress={() => router.push({
+        pathname: "Screens/User/ProductDetails/ProductDetails",
+        params: { productData: JSON.stringify(item) }
+      })} key={item._id} elevation={6} enableShadow className="m-2 p-2 rounded-lg w-40">
+        <Image source={{ uri: `${ServerURL}/images/${item.image}` }} className="h-28 w-full rounded-lg" />
+        <Text className="mt-2 text-lg font-bold" numberOfLines={1} ellipsizeMode="tail">
+          {item.title}
+        </Text>
         <Text className="text-sm text-gray-500">{item.description}</Text>
         <View className="flex flex-row items-center mt-1">
-          <Text className="text-lg font-bold text-green-600">{item.price}</Text>
-          <Text className="text-sm text-gray-400 ml-2 line-through">{item.oldPrice}</Text>
+          <Text className="text-lg font-bold text-green-600">₹{(parseFloat(item.price) - parseFloat(item.discount))}</Text>
+          <Text className="text-sm text-gray-400 ml-2 line-through">₹{item.price}</Text>
+          <Text className="text-sm text-green-400 ml-2">{item.discount}% off</Text>
         </View>
-        <TouchableOpacity className="mt-2 bg-black py-2 rounded-lg">
+        <TouchableOpacity onPress={() => router.push({
+          pathname: "Screens/User/ProductDetails/ProductDetails",
+          params: { productData: JSON.stringify(item) }
+        })} className="mt-2 bg-black py-2 rounded-lg">
           <Text className="text-white text-center">Add</Text>
         </TouchableOpacity>
       </Card>
@@ -49,7 +64,7 @@ const PopularProducts: React.FC<PopularProductsProps> = ({ heading, data }) => {
         <FlatList
           data={data}
           renderItem={renderCards}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={item => item._id}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 0 }}

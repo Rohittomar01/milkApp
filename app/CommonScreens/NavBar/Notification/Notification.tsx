@@ -25,11 +25,9 @@ const Notification = () => {
                     </TouchableOpacity>
                 </View>
                 <View>
-                    <ScrollView                   >
-                        <View>
-                            <NotificationItems />
-                        </View>
-                    </ScrollView>
+                    <View className=' h-full'>
+                        <NotificationItems />
+                    </View>
                 </View>
             </Modal>
         </View>

@@ -8,9 +8,11 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "https://png.pngtree.com/png-clipart/20230805/original/pngtree-vector-milk-logo-health-food-calcium-vector-picture-image_9779822.png",
+      "image": "assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+     "backgroundColor": "white",
+      "fullScreen": true
+     
     },
     "ios": {
       "supportsTablet": true

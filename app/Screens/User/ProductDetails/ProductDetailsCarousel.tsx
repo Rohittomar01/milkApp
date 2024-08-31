@@ -1,66 +1,78 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, ImageStyle, TextStyle, ViewStyle } from 'react-native';
-import { Carousel, } from 'react-native-ui-lib';
+import { View, Image, StyleSheet, ImageStyle, ViewStyle } from 'react-native';
+import { Carousel } from 'react-native-ui-lib';
 import _ from 'lodash';
 import { ServerURL } from '../../../Services/ServerServices';
-import index from '../../..';
+import { scaleHeight, scaleMargin, scalePadding, scaleWidth } from '../../../Global/Global';
 
-// Define the type for your items
+
 interface Item {
     _id: string;
+    productId: string;
+    title: string;
+    description: string;
+    product: {
+        category: {
+            name: string;
+        };
+        description: string;
+        title: string;
+    }
+    submitted_by: string;
+    price: number;
+    stock: number;
+    createdAt: string;
+    updatedAt: string;
+    discount: number;
+    quantity: number;
     image: string;
 }
-interface HomeCarouselProps {
-    data: Item[] | string | string[];
 
+interface HomeCarouselProps {
+    data: Item[];
 }
 
-
-
-
 const ProductDetailsCarousel: React.FC<HomeCarouselProps> = ({ data }) => {
-    const renderItem = (item: Item, index: any): JSX.Element => (
+    const renderItem = (item: Item, index: number): JSX.Element => (
         <View key={index} style={styles.itemContainer}>
             <Image source={{ uri: `${ServerURL}/images/${item.image}` }} style={styles.image} />
         </View>
     );
 
-
     return (
-        <View className=' bg-white mt-2 flex justify-center'>
+        <View style={styles.container}>
             <Carousel
-                pageWidth={350}
+                pageWidth={scaleWidth(350)}
                 onChangePage={() => console.log('page changed')}
                 autoplay
                 animated
-                containerMarginHorizontal={10}
-                containerPaddingVertical={10}
-
+                containerMarginHorizontal={scaleMargin(10)}
+                containerPaddingVertical={scalePadding(10)}
             >
-                {_.map(data, (item: Item, index: any) => renderItem(item, index))}
+                {_.map(data, (item: Item, index: number) => renderItem(item, index))}
             </Carousel>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
+    container: {
+        backgroundColor: 'white',
+        marginTop: scaleMargin(10),
+        flex: 1,
+        justifyContent: 'center',
+    } as ViewStyle,
     itemContainer: {
-        display: "flex",
+        display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 10,
     } as ViewStyle,
     image: {
-        width: 340,
-        height: 220,
-        borderRadius: 10,
-        objectFit: "contain"
+        width: scaleWidth(200),
+        height: scaleHeight(200),
+        borderRadius: scaleWidth(20),
+        resizeMode: 'contain',
     } as ImageStyle,
-    title: {
-        marginTop: 10,
-        fontSize: 16,
-        fontWeight: 'bold',
-    } as TextStyle,
 });
 
 export default ProductDetailsCarousel;

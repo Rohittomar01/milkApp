@@ -1,14 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import MapView, { Callout, Marker } from 'react-native-maps';
-import { View, Text, ScrollView } from 'react-native';
+import MapView, { Address, Callout, Marker } from 'react-native-maps';
+import { View, Text } from 'react-native';
 import * as Location from 'expo-location';
-import { ActionSheet, Button } from 'react-native-ui-lib';
+import { Button } from 'react-native-ui-lib';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { router } from 'expo-router';
 import Entypo from '@expo/vector-icons/Entypo';
+import AddressModal from './AddressModal';
+import AddAddressModal from './AddAddressModal';
+import { useLocalSearchParams } from 'expo-router';
+
+interface Address {
+    _id: string;
+    houseNumber: string;
+    apartmentName: string;
+    street: string;
+    area: string;
+    landmark: string;
+    city: string;
+    district: string;
+    state: string;
+    postalCode: string;
+    country: string;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    user_id: string;
+    submitted_by: string;
+}
 
 
 export default function MapLocation() {
+
+    const { addressData } = useLocalSearchParams();
+
+    const [address, setAddress] = useState<Address>(addressData ? JSON.parse(addressData as string) : []);
+    const [permisionStatus, setPermissionStatus] = useState<string>("")
+    const [getuserLocation, setGetUserLocation] = useState(null)
+    const [AddressChangeModalVisible, setAddressChangeModalVisible] = useState(false);
     const [mapRegion, setMapRegion] = useState({
         latitude: 37.78825,
         longitude: -122.4324,
@@ -16,72 +45,73 @@ export default function MapLocation() {
         longitudeDelta: 0.0421,
     });
 
-    const [actionSheetVisible, setActionSheetVisible] = useState(true); // Open by default
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
     const userLocation = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
             console.log('Permission to access location was denied');
             return;
+        } else {
+            const location = await Location.getCurrentPositionAsync();
+            if (location.coords.latitude) {
+                setPermissionStatus(status)
+                setMapRegion({
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421,
+                });
+            }
         }
-        const location = await Location.getCurrentPositionAsync();
-        setMapRegion({
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-        });
-        console.log('location', location);
     };
 
     useEffect(() => {
         userLocation();
-    }, []);
+    }, [permisionStatus]);
 
-    const hideActionSheet = () => {
-        setActionSheetVisible(false);
+    const handleAddManually = () => {
+        setIsModalVisible(true);
+    };
+
+    const handleModalClose = () => {
+        setIsModalVisible(false);
+    };
+
+    const handleAddressSubmit = (data: any) => {
+        console.log('Address data:', data);
+        setIsModalVisible(false);
+    };
+
+    const handleAddressChangeModalOpen = () => {
+        setAddressChangeModalVisible(true);
+    };
+
+    const handleAddressChangeModalClose = () => {
+        setAddressChangeModalVisible(false);
     };
 
     return (
-        <View className="flex-1">
-            <View>
+        <View className="flex-1 ">
+            <MapView
+                className="w-full h-full"
+                region={mapRegion}
+                provider="google"
+            >
+                <Marker coordinate={mapRegion} title="Marker">
+                    <Callout>
+                        <Text>I am here</Text>
+                    </Callout>
+                </Marker>
+            </MapView>
 
-                <MapView
-                    className="w-full h-full"
-                    region={mapRegion}
-                    provider="google"
-                >
-                    <Marker coordinate={mapRegion} title="Marker">
-                        <Callout>
-                            <Text>I am here</Text>
-                        </Callout>
-                    </Marker>
-                </MapView>
-                {/* <View className="absolute z-10 bg-white  mb-11">
-                    <ActionSheet
-                        visible={actionSheetVisible}
-                        onDismiss={() => { }}
-                        title="Address Options"
-                        message="Select an option or add a new address manually"
-                        cancelButtonIndex={4}
-                        destructiveButtonIndex={0}
-                        useNativeIOS
-                        options={[
-                            { label: 'Option 1', onPress: () => console.log('Option 1 pressed') },
-                            { label: 'Option 2', onPress: () => console.log('Option 2 pressed') },
-                            { label: 'Add Address Manually', onPress: () => console.log('Add Address Manually pressed') },
-                            { label: 'Cancel', onPress: hideActionSheet },
-                        ]}
-
-                    />
-                </View> */}
-            </View>
-            <View className="absolute bottom-0  h-52 bg-white p-6 rounded-t-[25px] ">
+            <View className="absolute bottom-0 h-72 bg-white w-full p-6 rounded-t-[25px]">
                 <View>
                     <GooglePlacesAutocomplete
                         placeholder="Search"
                         onPress={(data, details = null) => {
                             console.log(data, details);
+
                         }}
                         query={{
                             key: 'YOUR API KEY',
@@ -95,27 +125,52 @@ export default function MapLocation() {
                         }}
                     />
                 </View>
-                <View className='mt-16'>
-                    <View className=' flex items-center flex-row space-x-2  w-full'>
+                <View className="mt-16">
+                    <View className="flex items-center flex-row space-x-2 w-full">
                         <Entypo name="location-pin" size={24} color="black" />
                         <Text className="text-sm font-semibold">
-                            John Doe
-                            123 Maple Street
-                            Apt 4B
-                            Springfield, IL 62704
-                            United States
+                            {address.apartmentName ? `${address.apartmentName}, ` : ''}
+                            {address.houseNumber} {address.street}
+                            {address.area ? `, ${address.area}` : ''}
+                            {address.city ? `, ${address.city}` : ''}
+                            {address.district ? `, ${address.district}` : ''}
+                            {address.state ? `, ${address.state}` : ''}
+                            {address.postalCode ? `, ${address.postalCode}` : ''}
+                            {address.country ? `, ${address.country}` : ''}
                         </Text>
                     </View>
                 </View>
-                <View className=' mt-3'>
+
+                <View className="mt-3 flex justify-between items-center flex-grow">
+
                     <Button
-                        onPress={() => router.back()}
-                        label="Add address"
+                        onPress={permisionStatus === "granted" ? handleAddressChangeModalOpen : userLocation}
+                        label={permisionStatus === "granted" ? "Add Flat/Home/Building : No." : "Get location"}
                         color="white"
-                        className=" bg-black"
-                    ></Button>
+                        className="bg-green-900  w-full h-14 mt-2"
+                    />
+                    <Button
+                        onPress={handleAddManually}
+                        label={addressData ? "Update Address" : "Add manually"}
+                        color="white"
+                        className="bg-green-900  w-full h-14 mt-2"
+                    />
                 </View>
 
+            </View>
+
+            <AddressModal
+                visible={isModalVisible}
+                onClose={handleModalClose}
+                onSubmit={handleAddressSubmit}
+                address={address}
+            />
+            <View>
+                <AddAddressModal
+                    visible={AddressChangeModalVisible}
+                    onClose={handleAddressChangeModalClose}
+                    address={address}
+                />
             </View>
         </View>
     );

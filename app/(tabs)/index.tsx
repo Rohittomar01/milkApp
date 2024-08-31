@@ -15,51 +15,70 @@ import { getData } from '../Services/ServerServices'
 interface carouselItems {
   _id: string;
   image: string;
-
+  description: string;
+  started_date: Date;
+  ended_date: Date;
+  submitted_by: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface PopularProduct {
   _id: string;
-  image: string;
+  productId: string;
   title: string;
   description: string;
-  price: string;
-  discount: string;
-  category: string;
-  quantity: number;
+  product: {
+    category: {
+      name: string;
+    };
+    description: string;
+    title: string;
+  }
   submitted_by: string;
+  price: number;
+  stock: number;
   createdAt: string;
   updatedAt: string;
+  discount?: number;
 }
 
 
-const items: carouselItems[] = [
-  { _id: "1", image: 'https://img.freepik.com/premium-photo/milk-minimal-poster-modern-background-with-organic-splash-dairy-banner-template-with-splashes_1206114-3158.jpg?size=626&ext=jpg&ga=GA1.1.2008272138.1722297600&semt=ais_hybrid' },
-  { _id: "2", image: 'https://img.freepik.com/premium-vector/3d-fresh-milk-ad-template_317442-1799.jpg' },
-  { _id: "3", image: 'https://img.freepik.com/free-vector/farm-milk-poster_1284-74094.jpg' },
-];
 export default function Index() {
-  const [popularProducts, setPopularProducts] = useState<PopularProduct[]>([]);
+  const [popularProducts, setPopularProducts] = useState<any>([]);
+  const [carouselItems, setCarouselItems] = useState<carouselItems[]>([]);
   useEffect(() => {
     fetchProducts();
+    fetchCarousel();
   }, []);
   const fetchProducts = async () => {
     try {
-      const response = await getData("product/allProducts_Fetch");
+      const response = await getData("productDetails/allProductDetails_fetch");
       setPopularProducts(response.products);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
   };
 
+  const fetchCarousel = async () => {
+    try {
+      const response = await getData("carousel/fetchAllCarousels");
+      setCarouselItems(response.carousels);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+
+
   return (
     <SafeAreaView>
       <ScrollView className=' bg-slate-100 '>
-        <View >
+        <View>
           <NavBar />
         </View>
         <View>
-          <HomeCarousel data={items} />
+          <HomeCarousel data={carouselItems} />
         </View>
         <View>
           <Category />

@@ -1,25 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { TextInput, ScrollView, TouchableOpacity, Text } from 'react-native';
+import { TextInput, ScrollView, TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-native';
 import { Icon, Assets, Image, Card, Picker, View } from 'react-native-ui-lib';
 import { useRouter } from 'expo-router';
 import _ from "lodash";
 import Menu from './Menu/Menu';
 import Notification from './Notification/Notification';
 import { getData, ServerURL } from '../../Services/ServerServices';
+import { capitalizeEachWord, scaleFont, scaleHeight, scaleMargin, scalePadding, scaleWidth } from '../../Global/Global';
+
 
 interface Product {
   _id: string;
-  image: string;
+  productId: string;
   title: string;
   description: string;
-  price: string;
-  discount: string;
-  category: string;
-  quantity: number;
+  product: {
+    category: {
+      name: string;
+    };
+    description: string;
+    title: string;
+  }
   submitted_by: string;
+  price: number;
+  stock: number;
   createdAt: string;
   updatedAt: string;
+  discount: number;
+  quantity: number;
+  image: string;
 }
+
+const { width, height } = Dimensions.get("window");
+
 
 export default function NavBar() {
   const [searchValue, setSearchValue] = useState<string>("");
@@ -32,17 +45,24 @@ export default function NavBar() {
   }, []);
 
   useEffect(() => {
-    const filtered = products.filter(card =>
-      card.title.toLowerCase().includes(searchValue.toLowerCase()) ||
-      card.description.toLowerCase().includes(searchValue.toLowerCase()) ||
-      card.price.toString().includes(searchValue.toLowerCase())
-    );
+    const filtered = products.filter(card => {
+      const title = card.title || '';
+      const description = card.description || '';
+      const Price = card.price ? card.price.toString() : '';
+
+      return (
+        title.toLowerCase().includes(searchValue.toLowerCase()) ||
+        description.toLowerCase().includes(searchValue.toLowerCase()) ||
+        Price.includes(searchValue.toLowerCase())
+      );
+    });
     setFilteredCards(filtered);
   }, [searchValue, products]);
 
+
   const fetchProducts = async () => {
     try {
-      const response = await getData("product/allProducts_Fetch");
+      const response = await getData("productDetails/allProductDetails_fetch");
       setProducts(response.products);
       setFilteredCards(response.products);
     } catch (error) {
@@ -55,57 +75,66 @@ export default function NavBar() {
   };
 
   return (
-    <View className="bg-white mt-2">
-      <Card className="flex justify-between items-center rounded-lg pl-5 pr-5">
-        <View className='w-full flex-1 flex-row justify-between items-center'>
+    <View style={styles.container}>
+      <Card style={styles.card}>
+        <View style={styles.innerContainer}>
           <Menu />
           <Image
-            source={{ uri: 'https://png.pngtree.com/png-vector/20221207/ourmid/pngtree-dairy-food-logo-milk-yoghurt-and-lecho-farm-badges-design-with-png-image_6515855.png' }}
-            className="w-14 h-20"
+            source={require('../../../assets/splash.png')}
+            style={styles.logo}
           />
           <Notification />
         </View>
       </Card>
-      <View className="flex-row items-center justify-center space-x-2 p-4">
-        <View className="flex-1 border border-gray-300 rounded-full w-auto bg-white relative h-12 pl-12 pr-4">
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBox}>
           <Picker
             placeholder='Search here'
-            className='mt-2'
+            style={styles.picker}
             useSafeArea
           >
-            <View className="flex-row items-center justify-center space-x-2 p-4">
-              <TouchableOpacity className="flex-1 border border-gray-300 rounded-full w-auto bg-white relative h-12 pl-12 pr-4">
+            <View style={styles.searchInputContainer}>
+              <TouchableOpacity style={styles.searchButton}>
                 <TextInput
                   value={searchValue}
                   onChangeText={handleSearch}
                   placeholder="Search Here"
-                  className="w-full h-full pr-4"
+                  style={styles.searchInput}
                 />
                 <Icon
                   source={Assets.icons.search}
                   size={20}
                   tintColor="grey"
-                  className="absolute left-4 top-3.5 transform -translate-y-1/2"
+                  style={styles.searchIconOverlay}
                 />
               </TouchableOpacity>
             </View>
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.scrollViewStyle} >
               {_.map(filteredCards, (item: Product) => (
-                <Card onPress={() => router.push({
-                  pathname: "Screens/User/ProductDetails/ProductDetails",
-                  params: { productData: JSON.stringify(item) }
-                })} key={item._id} elevation={6} className="m-2 p-2 rounded-lg ">
-                  <View className='flex flex-row justify-between items-center w-64 p-2 pl-4 space-x-3'>
-                    <View className=" h-20  w-20" >
-                      <Image source={{ uri: `${ServerURL}/images/${item.image}` }} className="h-20 w-20 rounded-lg" />
+
+                <Card
+                  onPress={() => router.push({
+                    pathname: "Screens/User/ProductDetails/ProductDetails",
+                    params: { productId: JSON.stringify(item._id) }
+                  })}
+                  key={item._id}
+                  elevation={6}
+                  style={styles.productCard}
+                >
+                  <View style={styles.productCardContent}>
+                    <View style={styles.productImageContainer}>
+                      <Image source={{ uri: `${ServerURL}/images/${item.image}` }} style={styles.productImage} />
                     </View>
                     <View>
-                      <Text className="text-lg font-bold">{item.title}</Text>
-                      <Text className="text-sm text-gray-500">{item.description}</Text>
-                      <View className="flex flex-row items-center mt-1">
-                        <Text className="text-lg font-bold text-green-600">₹{(parseFloat(item.price) - parseFloat(item.discount))}</Text>
-                        <Text className="text-sm text-gray-400 ml-2 line-through">₹{item.price}</Text>
-                        <Text className="text-sm text-green-400 ml-2">{item.discount}</Text>
+                      <Text style={styles.productTitle}>{capitalizeEachWord(item.product.title)}</Text>
+                      <Text numberOfLines={2} ellipsizeMode='tail' style={styles.productDescription}>{item.product.description}</Text>
+                      <Text style={{ fontSize: scaleFont(15), color: '#6B7280', marginTop: scaleMargin(4) }} numberOfLines={1} ellipsizeMode="tail">
+                        {item.quantity} {item.product.category.name.toLowerCase().includes("ghee") ? 'lit' : 'kg'}
+                      </Text>
+                      <View style={styles.priceContainer}>
+                        <Text style={styles.discountedPrice}>₹{(item.price) - (item.discount)}</Text>
+                        <Text style={styles.originalPrice}>₹{item.price}</Text>
+                        <Text style={styles.discount}>{item.discount}% off</Text>
                       </View>
                     </View>
                   </View>
@@ -117,10 +146,144 @@ export default function NavBar() {
             source={Assets.icons.search}
             size={20}
             tintColor="grey"
-            className="absolute left-4 top-3.5 transform -translate-y-1/2"
+            style={styles.searchIconOverlay}
           />
         </View>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'white',
+    marginTop: 8,
+    paddingHorizontal: width * 0.05,
+  },
+  card: {
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: width * 0.05,
+  },
+  scrollViewStyle: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  innerContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+  },
+  logo: {
+    width: width * 0.18,
+    height: height * 0.1,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16
+  },
+  searchBox: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#D1D1D1',
+    borderRadius: 50,
+    backgroundColor: 'white',
+    height: 48,
+    paddingLeft: 48,
+    paddingRight: 16,
+    position: 'relative',
+  },
+  picker: {
+    marginTop: 8,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    marginTop: 10,
+  },
+  searchButton: {
+    flex: 1,
+    borderColor: '#D1D1D1',
+    borderRadius: 50,
+    backgroundColor: 'white',
+    height: 48,
+    paddingLeft: 48,
+    paddingRight: 16,
+    position: 'relative',
+    borderWidth: 1
+  },
+  searchInput: {
+    width: '100%',
+    height: '100%'
+  },
+  searchIconOverlay: {
+    position: 'absolute',
+    left: 16,
+    top: 24,
+    transform: [{ translateY: -12 }],
+  },
+  productCard: {
+    display: "flex",
+    justifyContent: "center",
+    padding: scalePadding(7),
+    borderRadius: 8,
+    width: width * 0.9,
+  },
+  productCardContent: {
+    flexDirection: 'row',
+    gap: 30,
+    alignItems: 'center',
+    padding: 8,
+  },
+  productImageContainer: {
+    height: scaleHeight(90),
+    width: scaleWidth(90),
+  },
+  productImage: {
+    height: scaleHeight(90),
+    width: scaleWidth(90),
+    borderRadius: 8,
+  },
+  productTitle: {
+    fontSize: width * 0.047,
+    fontWeight: 'bold',
+  },
+  productDescription: {
+    fontSize: width * 0.035,
+    color: '#7E7E7E',
+    width: scaleWidth(200)
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  discountedPrice: {
+    fontSize: width * 0.045,
+    fontWeight: 'bold',
+    color: '#228B22',
+  },
+  originalPrice: {
+    fontSize: width * 0.035,
+    color: '#A9A9A9',
+    textDecorationLine: 'line-through',
+    marginLeft: 8,
+  },
+  discount: {
+    fontSize: width * 0.035,
+    color: '#32CD32',
+    marginLeft: 8,
+  },
+});

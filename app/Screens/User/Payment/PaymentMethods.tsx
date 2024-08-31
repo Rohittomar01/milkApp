@@ -3,6 +3,7 @@ import { Dimensions, TouchableOpacity, ScrollView } from 'react-native';
 import { View, Text, Button, Checkbox, Card } from 'react-native-ui-lib';
 import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
+import { useRouter } from 'expo-router';
 
 // for Responsive screen
 const windowWidth = Dimensions.get('window').width;
@@ -23,6 +24,7 @@ interface FormValues {
 }
 
 export default function Payment_Details() {
+  const router = useRouter()
   const { control, handleSubmit, setValue } = useForm<FormValues>({
     defaultValues: {
       paymentMethods: {
@@ -40,7 +42,6 @@ export default function Payment_Details() {
   });
 
   const handleCheckboxChange = (name: keyof FormValues['paymentMethods']) => {
-    // Set all checkboxes to false and then set the selected one to true
     Object.keys(control._defaultValues.paymentMethods).forEach(key => {
       setValue(`paymentMethods.${key}` as keyof FormValues['paymentMethods'], false);
     });
@@ -49,6 +50,7 @@ export default function Payment_Details() {
 
   const onSubmit = (data: FormValues) => {
     console.log('Selected payment method:', data.paymentMethods);
+    router.push("Screens/User/Payment/PaymentSuccess")
   };
 
   return (
@@ -241,21 +243,20 @@ export default function Payment_Details() {
         </View>
       </ScrollView>
       <Card
-        padding-16
-        marginT-16
-        elevation={3}
+        className='  pl-6 pr-6 flex flex-row justify-between h-32 items-center'
+        elevation={4}
         backgroundColor="white"
         borderRadius={8}
       >
         <View>
           <Text className="text-lg font-semibold">Total Payable</Text>
-          <Text className="text-2xl text-green-700 font-bold">₹599</Text>
+          <Text className="text-2xl text-green-700 font-bold mb-7">₹599</Text>
         </View>
         <Button
-          backgroundColor="black"
+          backgroundColor="#365E32"
           label="Make Payment"
           onPress={handleSubmit(onSubmit)}
-          style={{ borderRadius: 8 }}
+          className="rounded-lg mb-5 h-16 w-44"
         />
       </Card>
     </View>

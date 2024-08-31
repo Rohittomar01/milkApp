@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { getData, ServerURL } from '../../../Services/ServerServices';
-import { View, FlatList, TouchableOpacity, Modal } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, FlatList, TouchableOpacity, Modal, Dimensions, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { Video, ResizeMode as VideoResizeMode } from 'expo-av';
-import { MaterialIcons } from 'react-native-vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Text } from 'react-native-ui-lib';
+import { getData, ServerURL } from '../../../Services/ServerServices';
 import 'nativewind';
 
 interface VideoData {
@@ -18,44 +18,47 @@ interface VideoData {
     __v: number;
 }
 
-
 const VideoSlider = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedVideo, setSelectedVideo] = useState<string>('');
     const [videos, setVideos] = useState<VideoData[]>([]);
+    const { width: screenWidth } = Dimensions.get('window');
+    const thumbnailWidth = screenWidth < 600 ? screenWidth / 2 - 16 : 180;
+    const thumbnailHeight = thumbnailWidth * 0.6;
+
     useEffect(() => {
-        fetchVidoes();
+        fetchVideos();
     }, []);
-    const fetchVidoes = async () => {
+
+    const fetchVideos = async () => {
         try {
-            const response = await getData("video/fetchAllVideos");
+            const response = await getData('video/fetchAllVideos');
             setVideos(response.videos);
         } catch (error) {
-            console.error("Error fetching products:", error);
+            console.error('Error fetching videos:', error);
         }
     };
-
-
-
-    const renderVideoThumbnail = ({ item }: { item: VideoData }) => (
-        <TouchableOpacity onPress={() => handleVideoPress(item.video)}>
-            <Video
-                source={{ uri: `${ServerURL}/videos/${item.video}` }}
-                useNativeControls={false}
-                resizeMode={VideoResizeMode.CONTAIN}
-                shouldPlay={false}
-                className="w-[350px] h-60 mx-2 rounded-lg"
-            />
-            <View className="absolute inset-0 justify-center items-center bg-opacity-40 mt-[98px] ml-[160px]">
-                <MaterialIcons name="play-circle-outline" size={60} color="white" />
-            </View>
-        </TouchableOpacity>
-    );
 
     const handleVideoPress = (uri: string) => {
         setSelectedVideo(uri);
         setModalVisible(true);
     };
+
+    const renderVideoThumbnail = useCallback(({ item }: { item: VideoData }) => (
+        <TouchableOpacity onPress={() => handleVideoPress(item.video)}>
+            <View style={[styles.videoContainer, { width: thumbnailWidth * 2, height: thumbnailHeight * 2 }]}>
+                <Video
+                    source={{ uri: `${ServerURL}/videos/${item.video}` }}
+                    useNativeControls={false}
+                    resizeMode={VideoResizeMode.COVER}
+                    style={styles.thumbnail}
+                />
+                <View style={styles.playIconContainer}>
+                    <MaterialIcons name="play-circle-outline" size={60} color="white" />
+                </View>
+            </View>
+        </TouchableOpacity>
+    ), [thumbnailWidth, thumbnailHeight]);
 
     const renderModalContent = () => (
         <Modal
@@ -77,9 +80,9 @@ const VideoSlider = () => {
     );
 
     return (
-        <View className="flex-1 bg-white mt-2">
-            <View className="flex justify-between flex-row p-4">
-                <Text className="text-xl font-bold">Videos</Text>
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.heading}>Videos</Text>
                 <View>
                     <MaterialIcons name="arrow-forward-ios" size={24} color="black" />
                 </View>
@@ -95,5 +98,58 @@ const VideoSlider = () => {
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#FFF',
+        marginTop: 8,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 16,
+    },
+    heading: {
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
+    videoContainer: {
+        marginHorizontal: 8,
+        borderRadius: 8,
+        overflow: 'hidden',
+        position: 'relative',
+    },
+    thumbnail: {
+        width: '100%',
+        height: '100%',
+    },
+    playIconContainer: {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: [{ translateX: -30 }, { translateY: -30 }],
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'black',
+    },
+    videoWrapper: {
+        width: '90%',
+        height: '60%',
+    },
+    modalVideo: {
+        width: '100%',
+        height: '100%',
+    },
+});
 
 export default VideoSlider;

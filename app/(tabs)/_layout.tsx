@@ -5,6 +5,7 @@ import { TouchableOpacity } from 'react-native-ui-lib';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import Octicons from '@expo/vector-icons/Octicons';
 
 export default function TabLayout() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function TabLayout() {
                 name="arrowleft"
                 size={20}
                 color="black"
-                onPress={() => router.back()} // Use router.back() for back navigation
+                onPress={() => router.back()} 
                 style={{ marginLeft: 17 }}
               />
             </TouchableOpacity>
@@ -42,6 +43,24 @@ export default function TabLayout() {
         options={{
           title: 'Cart',
           tabBarIcon: ({ color }) => <FontAwesome5 name="shopping-cart" size={24} color={color} />,
+          headerLeft: () => (
+            <TouchableOpacity>
+              <AntDesign
+                name="arrowleft"
+                size={20}
+                color="black"
+                onPress={() => router.back()} // Use router.back() for back navigation
+                style={{ marginLeft: 17 }}
+              />
+            </TouchableOpacity>
+          ),
+        }}
+      />
+       <Tabs.Screen
+        name="SubscriptionHistory"
+        options={{
+          title: 'Subscription',
+          tabBarIcon: ({ color }) => <Octicons name="checklist" size={24} color={color} />,
           headerLeft: () => (
             <TouchableOpacity>
               <AntDesign

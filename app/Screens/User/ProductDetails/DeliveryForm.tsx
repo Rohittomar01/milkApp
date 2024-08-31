@@ -9,16 +9,28 @@ import { postData } from '../../../Services/ServerServices';
 
 interface productData {
     _id: string;
-    image: string;
+    productId: string;
     title: string;
     description: string;
-    price: string;
-    discount: string;
-    category: string;
-    quantity: number;
+    product: {
+        category: {
+            name: string;
+        };
+        description: string;
+        title: string;
+    }
     submitted_by: string;
+    price: number;
+    stock: number;
     createdAt: string;
     updatedAt: string;
+    discount: number;
+    quantity: number;
+    image: string;
+    total_price?: string;
+    items?: number;
+    subscription_started_at?: Date;
+    subscription_ended_at?: Date;
 }
 
 interface Props {
@@ -35,26 +47,25 @@ const DeliveryForm: React.FC<Props> = ({ data }) => {
     const { control, handleSubmit, setValue, watch } = useForm({
         defaultValues: {
             deliveryShift: 'Morning',
-            quantity: 1,
+            items: data.items ? data.items : 1,
             plant_type: 'Daily',
             total_days: [] as string[],
-            subscription_started_at: new Date(),
-            subscription_ended_at: endDate,
+            subscription_started_at: data.subscription_started_at ? new Date(data.subscription_started_at) : new Date(),
+            subscription_ended_at: data.subscription_ended_at ? new Date(data.subscription_ended_at) : endDate,
         },
     });
-
     const planType = watch('plant_type');
-    const quantity = watch('quantity');
+    const quantity = watch('items');
     const days = watch('total_days');
     const [alternateDaysToggle, setAlternateDaysToggle] = useState<boolean>(true);
-    const [totalPrice, setTotalPrice] = useState<number>(parseFloat(data.price));
+    const [totalPrice, setTotalPrice] = useState<number>(data.price);
 
     useEffect(() => {
         updateDays(planType);
     }, [planType]);
 
     useEffect(() => {
-        const flexiblePrice = quantity * parseFloat(data.price);
+        const flexiblePrice = quantity * (data.price - data.discount);
         setTotalPrice(flexiblePrice);
     }, [quantity, data.price]);
 
@@ -94,7 +105,7 @@ const DeliveryForm: React.FC<Props> = ({ data }) => {
         const product_id: string = data._id
         const total_price = totalPrice
         const submitted_by = "user"
-        const user_id = "1"
+        const user_id = 1
         const submittedData = { ...formData, total_price, product_id, user_id, submitted_by };
         console.log(submittedData);
         try {
@@ -115,7 +126,7 @@ const DeliveryForm: React.FC<Props> = ({ data }) => {
             <View className="p-6 bg-white mt-2">
                 <Text className="text-lg font-bold mb-2">Select Delivery Shift</Text>
                 <View className='flex justify-between w-full flex-row items-center'>
-                    <View>
+                    {data.product.category.name.toLowerCase().includes("milk") ? (<View>
                         <Controller
                             name="deliveryShift"
                             control={control}
@@ -129,9 +140,12 @@ const DeliveryForm: React.FC<Props> = ({ data }) => {
                             )}
                         />
                     </View>
+                    ) : (
+                        <Text className="text-black text-center font-bold text-lg">Quantity</Text>
+                    )}
                     <View>
                         <Controller
-                            name="quantity"
+                            name="items"
                             control={control}
                             render={({ field: { onChange, value } }) => (
                                 <View className="flex-row items-center">
@@ -158,55 +172,57 @@ const DeliveryForm: React.FC<Props> = ({ data }) => {
                     </View>
                 </View>
             </View>
+            {data.product.category.name.toLowerCase().includes("milk") ? (
+                <View className="p-6 bg-white mt-2">
+                    <Text className="text-lg font-bold mb-2">Plan Type</Text>
+                    <Controller
+                        name="plant_type"
+                        control={control}
+                        render={({ field: { onChange, value } }) => (
+                            <View className="flex-row mb-4">
+                                {['Daily', 'Alternate Days', 'Custom'].map((type) => (
+                                    <TouchableOpacity
+                                        key={type}
+                                        onPress={() => {
+                                            onChange(type);
+                                            updateDays(type);
+                                        }}
+                                        className={`py-2 px-4 m-1 rounded-full ${value === type ? 'bg-black' : 'bg-gray-500'}`}
+                                    >
+                                        <Text className="text-white">{type}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
+                    />
+                    <Controller
+                        name="total_days"
+                        control={control}
+                        render={({ field: { value } }) => (
+                            <View className="flex-row flex-wrap">
+                                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                                    <TouchableOpacity
+                                        key={day}
+                                        onPress={() => {
+                                            if (planType === 'Alternate Days') {
+                                                handleAlternateDaysPress();
+                                            } else {
+                                                handleDayPress(day);
+                                            }
+                                        }}
+                                        disabled={isDayDisabled(day)}
+                                        className={`py-2 px-4 m-1 rounded-full ${isDayDisabled(day) ? 'bg-green-800' : value.includes(day) ? 'bg-green-800' : 'bg-gray-500'}`}
+                                    >
+                                        <Text className={`text-white ${isDayDisabled(day) ? 'text-white' : ''}`}>{day}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
+                    />
+                </View>
+            ) : null}
 
-            <View className="p-6 bg-white mt-2">
-                <Text className="text-lg font-bold mb-2">Plan Type</Text>
-                <Controller
-                    name="plant_type"
-                    control={control}
-                    render={({ field: { onChange, value } }) => (
-                        <View className="flex-row mb-4">
-                            {['Daily', 'Alternate Days', 'Custom'].map((type) => (
-                                <TouchableOpacity
-                                    key={type}
-                                    onPress={() => {
-                                        onChange(type);
-                                        updateDays(type);
-                                    }}
-                                    className={`py-2 px-4 m-1 rounded-full ${value === type ? 'bg-black' : 'bg-gray-500'}`}
-                                >
-                                    <Text className="text-white">{type}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    )}
-                />
-                <Controller
-                    name="total_days"
-                    control={control}
-                    render={({ field: { value } }) => (
-                        <View className="flex-row flex-wrap">
-                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                                <TouchableOpacity
-                                    key={day}
-                                    onPress={() => {
-                                        if (planType === 'Alternate Days') {
-                                            handleAlternateDaysPress();
-                                        } else {
-                                            handleDayPress(day);
-                                        }
-                                    }}
-                                    disabled={isDayDisabled(day)}
-                                    className={`py-2 px-4 m-1 rounded-full ${isDayDisabled(day) ? 'bg-green-800' : value.includes(day) ? 'bg-green-800' : 'bg-gray-500'}`}
-                                >
-                                    <Text className={`text-white ${isDayDisabled(day) ? 'text-white' : ''}`}>{day}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    )}
-                />
-            </View>
-            <View className="p-6 mt-2 bg-white flex justify-between flex-row items-center">
+            {data.product.category.name.toLowerCase().includes("milk") ? (<View className="p-6 mt-2 bg-white flex justify-between flex-row items-center">
                 <View className="flex flex-col">
                     <Text className="text-lg font-bold mb-2">Start From</Text>
                     <View>
@@ -238,6 +254,7 @@ const DeliveryForm: React.FC<Props> = ({ data }) => {
                                 <DateTimePicker
                                     value={value}
                                     minimumDate={new Date()}
+                                    maximumDate={new Date(new Date().setDate(new Date().getDate() + 30))}
                                     onChange={(date: Date) => onChange(date)}
                                     placeholder={'Select End date'}
                                     mode={'date'}
@@ -248,6 +265,7 @@ const DeliveryForm: React.FC<Props> = ({ data }) => {
                     </View>
                 </View>
             </View>
+            ) : null}
 
             <View className="p-6 bg-white mt-2">
                 <Text className="text-lg font-bold mb-2">Note:</Text>

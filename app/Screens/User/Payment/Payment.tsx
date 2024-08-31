@@ -59,7 +59,7 @@ export default function RazorPay() {
     return (
         <SafeAreaView>
             <View >
-                <Button onClick={() => OnlineMethod()}><Text>click here for other options</Text></Button>
+                <Button onPress={() => OnlineMethod()}><Text>click here for other options</Text></Button>
             </View>
         </SafeAreaView>
     )

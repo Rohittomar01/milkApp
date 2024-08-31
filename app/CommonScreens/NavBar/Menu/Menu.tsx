@@ -23,10 +23,8 @@ const Menu = () => {
                         <AntDesign name="close" size={24} color="black" />
                     </TouchableOpacity>
                 </View>
-                <View className='w-full bg-slate-500'>
-                    <ScrollView className='w-full'>
+                <View className='w-full h-full bg-slate-500'>
                         <MenuItems />
-                    </ScrollView>
                 </View>
             </Modal>
         </View>

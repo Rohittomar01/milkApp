@@ -4,7 +4,7 @@ import { Button } from 'react-native-ui-lib';
 import { useForm, Controller } from 'react-hook-form';
 import { router, useLocalSearchParams } from 'expo-router';
 import { postData } from '../../Services/ServerServices';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 interface SignUpData {
   name?: string;
   email?: string;
@@ -31,15 +31,16 @@ const Verification = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
 
+
   const inputRefs = useRef<Array<TextInput | null>>([null, null, null, null]);
 
   const onSubmit = async (data: any) => {
     const enteredOTP = `${data.code1}${data.code2}${data.code3}${data.code4}`;
-
     if (signUp_Data.name) {
       if (enteredOTP === JSON.parse(otp)) {
         try {
-          await postData("users/signUp", signUp_Data).then(() => {
+          await postData("users/signUp", signUp_Data).then((response) => {
+            AsyncStorage.setItem("@auth", JSON.stringify(response))
             router.push("Screens/User/MapLocation/MapLocation");
           });
         } catch (error) {
@@ -52,9 +53,19 @@ const Verification = () => {
       }
     }
     else {
-      router.push("AddToCart")
+      if (enteredOTP === JSON.parse(otp)) {
+        try {
+          await AsyncStorage.setItem("@auth", signUpData)
+          router.push("AddToCart")
+        } catch (error) {
+          console.error("error ocurred while set data in local storage", error)
+        }
+
+      }
     }
   };
+
+
 
   const handleInputChange = (value: string, index: number) => {
     if (value.length === 1 && index < inputRefs.current.length - 1) {

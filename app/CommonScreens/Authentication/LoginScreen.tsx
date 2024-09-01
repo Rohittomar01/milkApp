@@ -23,9 +23,9 @@ const LoginScreen = () => {
     if (data.mobileNumber) {
       try {
         const result = await postData("users/checkUserExistence", { mobileNumber: data.mobileNumber })
-        console.log(result.status)
+        // console.log(result)
         if (result.status === 1) {
-          router.push({ pathname: "CommonScreens/Authentication/Verification", params: { otp: JSON.stringify(otp) } });
+          router.push({ pathname: "CommonScreens/Authentication/Verification", params: { signUpData: JSON.stringify(result), otp: JSON.stringify(otp) } });
           alert(otp);
         }
         else {

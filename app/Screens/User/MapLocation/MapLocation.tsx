@@ -9,6 +9,7 @@ import Entypo from '@expo/vector-icons/Entypo';
 import AddressModal from './AddressModal';
 import AddAddressModal from './AddAddressModal';
 import { useLocalSearchParams } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Address {
     _id: string;
@@ -34,6 +35,8 @@ export default function MapLocation() {
 
     const { addressData } = useLocalSearchParams();
 
+    console.log("addresssssss",addressData)
+  
     const [address, setAddress] = useState<Address>(addressData ? JSON.parse(addressData as string) : []);
     const [permisionStatus, setPermissionStatus] = useState<string>("")
     const [getuserLocation, setGetUserLocation] = useState(null)

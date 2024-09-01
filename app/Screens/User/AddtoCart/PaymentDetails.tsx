@@ -4,6 +4,7 @@ import { Card, RadioButton, RadioGroup } from 'react-native-ui-lib';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { calculateDiscountPercentage } from '../../../Global/Global';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 interface CartItem {
     user_id: string;
     _id: string;
@@ -39,10 +40,27 @@ interface CartItem {
 interface PaymentCardProps {
     data: CartItem[];
 }
+interface userData {
+    message: string;
+    signIn: {
+        __v: number;
+        _id: string;
+        createdAt: string;
+        email: string;
+        gender: string;
+        mobileNumber: string;
+        name: string;
+        updatedAt: string;
+    };
+    success: boolean;
+}
+
 
 const PaymentDetails = ({ data }: PaymentCardProps) => {
 
     const router = useRouter();
+    const [UserData, setUserData] = useState<userData | null>(null)
+
 
     const totalPrice = data.reduce((acc, item) => {
         const isMilkCategory = item.product.category.name.toLowerCase().includes("milk");
@@ -61,7 +79,32 @@ const PaymentDetails = ({ data }: PaymentCardProps) => {
         } else {
             setPaymentAmount(finalPrice);
         }
-    }, [paymentMethod, finalPrice]);
+    }, [paymentMethod, finalPrice, UserData]);
+    const fetchUserData = async () => {
+        try {
+            const userData = await AsyncStorage.getItem("@auth");
+            if (userData) {
+                setUserData(JSON.parse(userData));
+            } else {
+                console.log("No user data found");
+            }
+        } catch (error) {
+            console.error("Error retrieving user data:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchUserData();
+    }, [])
+
+    const handleNavigation = () => {
+        if (UserData?.signIn._id) {
+            router.push("Screens/User/Payment/PaymentMethods")
+        }
+        else {
+            router.push("CommonScreens/Authentication/LoginScreen")
+        }
+    }
 
     return (
         <Card className="p-6 mt-2 bg-white">
@@ -123,7 +166,7 @@ const PaymentDetails = ({ data }: PaymentCardProps) => {
                     </RadioGroup>
                 </View>
 
-                <TouchableOpacity onPress={() => router.push("CommonScreens/Authentication/LoginScreen")} className="mt-4 flex-row items-center justify-center bg-black p-2 rounded-full h-14">
+                <TouchableOpacity onPress={() => handleNavigation()} className="mt-4 flex-row items-center justify-center bg-black p-2 rounded-full h-14">
                     <Text className="text-white text-lg font-bold">Proceed to Payment: <Text className="text-white">₹{paymentAmount.toFixed(2)}</Text></Text>
                     <Ionicons name="arrow-forward" size={20} color="white" className="ml-2" />
                 </TouchableOpacity>

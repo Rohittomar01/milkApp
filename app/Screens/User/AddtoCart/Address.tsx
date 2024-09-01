@@ -5,7 +5,7 @@ import { Text } from 'react-native-ui-lib';
 import { useRouter } from 'expo-router';
 import { getData } from '../../../Services/ServerServices';
 import AddressSelectionModal from '../../../CommonScreens/Address/AddressSelectionModal';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // Define the Address interface
 interface Address {
     _id: string;
@@ -26,11 +26,27 @@ interface Address {
     submitted_by: string;
 }
 
+interface userData {
+    message: string;
+    signIn: {
+        __v: number;
+        _id: string;
+        createdAt: string;
+        email: string;
+        gender: string;
+        mobileNumber: string;
+        name: string;
+        updatedAt: string;
+    };
+    success: boolean;
+}
+
 export default function Address() {
-    const router = useRouter();
+    // const router = useRouter();
     const [address, setAddress] = useState<Address | null>(null);
     const [isModalVisible, setModalVisible] = useState(false);
     const [addressId, setAddressId] = useState<string>("")
+    const [UserData, setUserData] = useState<userData | null>(null)
 
     const handleOpenModal = (id: string) => {
         setModalVisible(true);
@@ -39,19 +55,38 @@ export default function Address() {
     };
 
     const fetchSelectedAddress = async () => {
-        const user_id = "1"
-        try {
-            const response = await getData(`selectedAddress/fetchSelected_Address/${user_id}`);
-            setAddress(response.addressDetails);
+        const user_id = UserData?.signIn._id
+        console.log("user_id", user_id)
+        if (user_id) {
+            try {
+                const response = await getData(`selectedAddress/fetchSelected_Address/${user_id}`);
+                setAddress(response.addressDetails);
 
+            } catch (error) {
+                console.error("Error during fetch active address", error);
+            }
+        }
+    };
+    const fetchUserData = async () => {
+        try {
+            const userData = await AsyncStorage.getItem("@auth");
+            if (userData) {
+                console.log("userData", JSON.parse(userData));
+                setUserData(JSON.parse(userData));
+            } else {
+                console.log("No user data found");
+            }
         } catch (error) {
-            console.log("Error during fetch active address", error);
+            console.error("Error retrieving user data:", error);
         }
     };
 
     useEffect(() => {
+        fetchUserData();
+    }, [])
+    useEffect(() => {
         fetchSelectedAddress();
-    }, [isModalVisible]);
+    }, [isModalVisible, UserData]);
 
     return (
         <View className='mt-2 bg-white p-6'>
@@ -77,7 +112,7 @@ export default function Address() {
                     </View>
                 </View>
             ) : (
-                <Text>Loading...</Text>
+                <Text>Add Address</Text>
             )}
             <View>
                 <AddressSelectionModal

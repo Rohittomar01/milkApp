@@ -4,7 +4,7 @@ import { Dialog, PanningProvider, Checkbox } from 'react-native-ui-lib';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useRouter } from 'expo-router';
 import { postData, getData } from '../../Services/ServerServices';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 interface AddressModalProps {
     id?: string;
     visible: boolean;
@@ -29,38 +29,69 @@ interface Address {
     user_id: string;
     submitted_by: string;
 }
+interface userData {
+    message: string;
+    signIn: {
+        __v: number;
+        _id: string;
+        createdAt: string;
+        email: string;
+        gender: string;
+        mobileNumber: string;
+        name: string;
+        updatedAt: string;
+    };
+    success: boolean;
+}
 
 const AddressSelectionModal: React.FC<AddressModalProps> = ({
     visible = false,
     onClose,
     id = ""
 }: AddressModalProps) => {
-    const [selected, setSelected] = useState<string>("1");
+    const [selected, setSelected] = useState<string>("");
     const [address, setAddress] = useState<Address[]>([]);
+    const [UserData, setUserData] = useState<userData | null>(null)
+
 
     const router = useRouter();
-
-    const fetchAddress = async () => {
-        const user_id = "1"
+    const fetchUserData = async () => {
         try {
-            const response = await getData(`address/allAddress_Fetch/${user_id}`);
-            if (response && response.addresses && response.addresses.length > 0) {
-                setAddress(response.addresses);
+            const userData = await AsyncStorage.getItem("@auth");
+            if (userData) {
+                setUserData(JSON.parse(userData));
+            } else {
+                console.log("No user data found");
             }
         } catch (error) {
-            console.log("Error during fetch active address", error);
+            console.error("Error retrieving user data:", error);
         }
     };
-
+    const fetchAddress = async () => {
+        const user_id = UserData?.signIn._id
+        if (user_id) {
+            try {
+                const response = await getData(`address/address_Fetch/${user_id}`);
+                if (response && response.addresses && response.addresses.length > 0) {
+                    setAddress(response.addresses);
+                }
+            } catch (error) {
+                console.log("Error during fetch active address", error);
+            }
+        }
+    };
+    useEffect(() => {
+        fetchUserData();
+    }, []);
     useEffect(() => {
         fetchAddress();
-    }, []);
+    }, [UserData]);
 
     const onSelectAddress = async (address: any) => {
         setSelected(address._id);
         const body = {
             address_id: address._id,
-            user_id: "1",
+            user_id: UserData?.signIn._id,
             submitted_by: "user"
         }
         try {
@@ -78,6 +109,11 @@ const AddressSelectionModal: React.FC<AddressModalProps> = ({
         router.push({ pathname: "Screens/User/MapLocation/MapLocation", params: { addressData: JSON.stringify(item) } })
         onClose()
     }
+    const handleNewAddress_Click = () => {
+        router.push("Screens/User/MapLocation/MapLocation");
+        onClose();
+    }
+
 
     return (
         <Dialog
@@ -95,7 +131,7 @@ const AddressSelectionModal: React.FC<AddressModalProps> = ({
                     </TouchableOpacity>
                 </View>
             </View>
-            <TouchableOpacity onPress={() => router.push("Screens/User/MapLocation/MapLocation")} style={styles.addAddressButton}>
+            <TouchableOpacity onPress={() => handleNewAddress_Click()} style={styles.addAddressButton}>
                 <Text style={styles.addAddressText}>+ Add New Address</Text>
             </TouchableOpacity>
 

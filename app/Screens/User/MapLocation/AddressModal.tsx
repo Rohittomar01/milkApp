@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Modal } from 'react-native';
 import { Button, TextField } from 'react-native-ui-lib';
 import { useForm, Controller } from 'react-hook-form';
 import { postData, updateData } from '../../../Services/ServerServices';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Address {
     _id: string;
@@ -23,6 +24,20 @@ interface Address {
     user_id: string;
     submitted_by: string;
 }
+interface userData {
+    message: string;
+    signIn: {
+        __v: number;
+        _id: string;
+        createdAt: string;
+        email: string;
+        gender: string;
+        mobileNumber: string;
+        name: string;
+        updatedAt: string;
+    };
+    success: boolean;
+}
 
 interface AddressModalProps {
     visible: boolean;
@@ -32,6 +47,8 @@ interface AddressModalProps {
 }
 
 const AddressModal: React.FC<AddressModalProps> = ({ address, visible, onClose }: AddressModalProps) => {
+
+    const [UserData, setUserData] = useState<userData | null>(null);
     const router = useRouter();
     const { control, handleSubmit, formState: { errors } } = useForm({
         defaultValues: {
@@ -44,12 +61,29 @@ const AddressModal: React.FC<AddressModalProps> = ({ address, visible, onClose }
             district: address ? address.district : 'Gwalior',
             state: address ? address.state : 'Madhya Pradesh',
             postalCode: address ? address.postalCode : '474001',
-            country: address ? address.country : 'India'
+            country: 'India'
         }
     });
 
+    const fetchUserData = async () => {
+        try {
+            const userData = await AsyncStorage.getItem("@auth");
+            if (userData) {
+                setUserData(JSON.parse(userData));
+            } else {
+                console.log("No user data found");
+            }
+        } catch (error) {
+            console.error("Error retrieving user data:", error);
+        }
+    };
+    useEffect(() => {
+        fetchUserData();
+    }, [])
+
+
     const onSubmit = async (data: any) => {
-        const finalAddressData = { ...data, submitted_by: "user", user_id: "1", _id: address._id };
+        const finalAddressData = { ...data, submitted_by: "user", user_id: UserData ? UserData.signIn._id : 1, _id: address._id };
 
         try {
             if (address && address._id) {
@@ -276,7 +310,7 @@ const AddressModal: React.FC<AddressModalProps> = ({ address, visible, onClose }
                                     placeholder="India"
                                     onChangeText={onChange}
                                     value={value}
-                                    editable={false}
+                                    editable={true}
                                 />
                             )}
                         />

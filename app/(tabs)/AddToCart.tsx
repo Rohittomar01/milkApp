@@ -8,6 +8,7 @@ import Couple from '../Screens/User/AddtoCart/Couple';
 import { getData } from '../Services/ServerServices';
 import EmptyCart from '../Screens/User/AddtoCart/emptyAddtocartScreen';
 import Address from '../Screens/User/AddtoCart/Address';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 interface CardItem {
@@ -79,9 +80,17 @@ export default function AddToCart() {
         }
     };
 
+    const getLocalStorageData = async () => {
+        const authData = await AsyncStorage.getItem("@auth")
+        console.log("AuthData", authData)
+    }
+
     useEffect(() => {
         fetchCartItems();
         fetchProducts();
+        getLocalStorageData();
+
+
 
     }, []);
 

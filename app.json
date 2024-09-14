@@ -8,12 +8,13 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "assets/splash.png",
-      "resizeMode": "contain",
+      "image": "none",
+      "resizeMode":"contain",
      "backgroundColor": "white",
-      "fullScreen": true
+      "fullScreen": false
      
     },
+  
     "ios": {
       "supportsTablet": true
     },

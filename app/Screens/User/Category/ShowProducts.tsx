@@ -4,7 +4,7 @@ import { Card, Badge } from 'react-native-ui-lib';
 import { useRouter } from 'expo-router';
 import { getData, ServerURL } from '../../../Services/ServerServices';
 import useCategoryStore from '../../../store/useCategory';
-import { scaleWidth, scaleFont, scaleHeight, color_DarkGreen, color_white, color_green, color_gray, scaleMargin, scalePadding, capitalizeEachWord, calculateDiscountPercentage } from '../../../Global/Global';
+import { scaleWidth, scaleFont, scaleHeight, color_DarkGreen, color_white, color_green, color_gray, scaleMargin, scalePadding, capitalizeEachWord, calculateDiscountPercentage, theme_color } from '../../../Global/Global';
 
 
 
@@ -69,7 +69,7 @@ const ShowProducts = () => {
     const handleCardPress = useCallback((item: Product) => {
         router.push({
             pathname: "Screens/User/ProductDetails/ProductDetails",
-            params: {productData: JSON.stringify(item)}
+            params: { productId: JSON.stringify(item.productId) }
         });
         setCategory("");
     }, [router]);
@@ -204,7 +204,7 @@ const ShowProducts = () => {
                         disabled={isOutOfStock ? true : false}
                         style={{
                             marginTop: scaleHeight(7),
-                            backgroundColor: color_DarkGreen,
+                            backgroundColor: theme_color,
                             paddingVertical: scaleHeight(8),
                             borderRadius: scaleWidth(8),
                         }}

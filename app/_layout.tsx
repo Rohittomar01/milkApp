@@ -12,7 +12,8 @@ export default function Layout() {
       <Stack.Screen name='Screens/User/Payment/PaymentMethods' options={{ title: "Payment Method", presentation: "modal" }} />
       <Stack.Screen name='Screens/User/Payment/PaymentSuccess' options={{ headerShown: false }} />
       <Stack.Screen name='Screens/User/Profile/Profile' options={{ title: "Profile", presentation: "modal" }} />
-      <Stack.Screen name='Screens/User/OrderHistory/OrderHistory' options={{ title: "Order", presentation: "modal" }} />
+      <Stack.Screen name='Screens/User/OrderHistory/OrderHistory' options={{ title: "Order" }} />
+      <Stack.Screen name='Screens/User/Starter/StarterCarousel' options={{ headerShown: false }} />
       <Stack.Screen name='CommonScreens/NavBar/Menu/MenuComponents/Vacation/Vacation' options={{ title: "Vacation", presentation: "modal" }} />
       <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
     </Stack>

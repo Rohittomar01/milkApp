@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Card, RadioButton, RadioGroup } from 'react-native-ui-lib';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { calculateDiscountPercentage } from '../../../Global/Global';
+import { calculateDiscountPercentage, theme_color } from '../../../Global/Global';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 interface CartItem {
     user_id: string;
@@ -26,7 +26,7 @@ interface CartItem {
     discount: number;
     quantity: number;
     image: string;
-    total_days: string[];
+    week_days: string[];
     auto_renewal: boolean;
     total_price: number;
     rating: number;
@@ -34,7 +34,11 @@ interface CartItem {
     deliveryAddress: string;
     subscription_started_at?: string;
     subscription_ended_at?: string;
-    plant_type: string;
+    plan_type: string;
+    item_type: string;
+    calculatedPrice: number;
+    total_days: number;
+    items: number;
 }
 
 interface PaymentCardProps {
@@ -64,7 +68,7 @@ const PaymentDetails = ({ data }: PaymentCardProps) => {
 
     const totalPrice = data.reduce((acc, item) => {
         const isMilkCategory = item.product.category.name.toLowerCase().includes("milk");
-        return acc + (isMilkCategory ? item.total_price * 30 : item.total_price);
+        return acc + (isMilkCategory ? item.calculatedPrice : item.total_price);
     }, 0);
 
     const totalDiscount = data.reduce((acc, item) => acc + item.discount, 0);
@@ -99,7 +103,7 @@ const PaymentDetails = ({ data }: PaymentCardProps) => {
 
     const handleNavigation = () => {
         if (UserData?.signIn._id) {
-            router.push("Screens/User/Payment/PaymentMethods")
+            router.push({ pathname: "Screens/User/Payment/PaymentMethods", params: { amount: paymentAmount } })
         }
         else {
             router.push("CommonScreens/Authentication/LoginScreen")
@@ -116,7 +120,7 @@ const PaymentDetails = ({ data }: PaymentCardProps) => {
                 </View>
                 <View className="flex-row justify-between mt-2">
                     <Text className="text-base">Discount</Text>
-                    <Text className="text-base text-green-700">{calculateDiscountPercentage(totalPrice, totalDiscount).toFixed(2)}%</Text>
+                    <Text className="text-base text-green-700">{(totalDiscount).toFixed(2)}</Text>
                 </View>
                 <View className="flex-row justify-between mt-2">
                     <Text className="text-base">Delivery Charges</Text>
@@ -134,39 +138,28 @@ const PaymentDetails = ({ data }: PaymentCardProps) => {
             <View className='mt-4'>
                 {/* <Text className="font-extrabold">Payment Method</Text> */}
 
-                <View className="mt-2">
+                {/* <View className="mt-2">
                     <RadioGroup
+                        initialValue={"max"}
                         onValueChange={setPaymentMethod}
-                        value={paymentMethod}
-                        defaultValue="max"
-                        direction="row"
-                        color="black"
-                        labelStyle={{ color: 'black' }}
-                        label="Payment Method"
-                        labelColor="black"
-                        size={20}
-                        activeColor="black"
-                        inactiveColor="black"
-                        selectedColor="black"
-                        selectedLabelColor="black"
                         className="flex flex-row space-x-3"
                     >
                         <RadioButton
                             value="min"
                             label="Minimum Amount"
-                            color="black"
+                            color={theme_color}
                             labelStyle={{ color: 'black' }}
                         />
                         <RadioButton
                             value="max"
                             label="Maximum Amount"
-                            color="black"
+                            color={theme_color}
                             labelStyle={{ color: 'black' }}
                         />
                     </RadioGroup>
-                </View>
+                </View> */}
 
-                <TouchableOpacity onPress={() => handleNavigation()} className="mt-4 flex-row items-center justify-center bg-black p-2 rounded-full h-14">
+                <TouchableOpacity onPress={() => handleNavigation()} className={`mt-4 flex-row items-center justify-center  p-2 rounded-full h-14`} style={{ backgroundColor: theme_color }} >
                     <Text className="text-white text-lg font-bold">Proceed to Payment: <Text className="text-white">₹{paymentAmount.toFixed(2)}</Text></Text>
                     <Ionicons name="arrow-forward" size={20} color="white" className="ml-2" />
                 </TouchableOpacity>

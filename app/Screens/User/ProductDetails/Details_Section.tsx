@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { Card } from 'react-native-ui-lib';
 import { scaleHeight, scaleMargin, scalePadding, scaleWidth, scaleFont, capitalizeEachWord, calculateDiscountPercentage, color_green, color_gray } from '../../../Global/Global';
@@ -24,90 +24,72 @@ interface productData {
     discount: number;
     quantity: number;
     image: string;
+    total_price?: string;
+    items?: number;
+    plan_type: string;
+    week_days: string[];
+    subscription_started_at?: Date;
+    subscription_ended_at?: Date;
 }
 
 interface Props {
-    data: productData
-    setQuantity: (value: number) => void;
+    data: productData[]
+    setProductDetailsData: (value: productData) => void;
 }
 
-const Details_Section: React.FC<Props> = ({ data, setQuantity }) => {
+const Details_Section: React.FC<Props> = ({ data, setProductDetailsData }) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const [selectedSize, setSelectedSize] = useState<number>(data.quantity);
-
-    const handleToggleDescription = () => {
-        setIsExpanded(!isExpanded);
-    };
+    const [selectedSize, setSelectedSize] = useState<number>(1);
+    const [selectQuantity, setSelectQuantity] = useState<number>(1);
+    const [filteredData, setFilteredData] = useState<productData>()
 
     const handleSizeSelection = (size: number) => {
-        setSelectedSize(size);
-        setQuantity(size)
+        // setSelectedSize(size);
+        setSelectQuantity(size)
     };
+
+    useEffect(() => {
+        if (!selectQuantity || !data) return;
+        const filterData = data.filter(item => item.quantity === selectQuantity);
+        setFilteredData(filterData[0]);
+        setProductDetailsData(filterData[0])
+    }, [selectQuantity, data]);
+
+
 
 
     return (
         <Card style={styles.card}>
             <Text style={styles.title}>
-                {capitalizeEachWord(data.product.title)}
+                {capitalizeEachWord(filteredData ? filteredData?.product.title as string : "")}
             </Text>
             <Text
                 style={styles.description}
                 numberOfLines={isExpanded ? 1 : 3}
                 ellipsizeMode="tail"
             >
-                {data.product.description}.
+                {filteredData?.product.description}.
             </Text>
-            <Text style={styles.quantity}>{data.quantity} {data.product.category.name.toLowerCase().includes("ghee") ? 'kg' : 'LTR'}</Text>
+            <Text style={styles.quantity}>{filteredData?.quantity}</Text>
 
-            <View style={styles.toggleButtonContainer}>
-                <TouchableOpacity onPress={handleToggleDescription}>
-                    <Text style={styles.toggleButton}>{isExpanded ? 'Show Less' : 'Show More'}</Text>
-                </TouchableOpacity>
-            </View>
-            <View style={styles.priceContainer}>
-                <Text style={styles.discountedPrice}>₹{data.price - data.discount}</Text>
-                <Text style={styles.originalPrice}>₹{data.price}</Text>
-                <Text style={styles.discount}>({calculateDiscountPercentage(data.price, data.discount)}% off)</Text>
-            </View>
+
             <Text style={styles.taxesText}>Inclusive of all taxes</Text>
             <Text style={styles.deliveryText}>Free Delivery</Text>
             <View style={styles.sizeSelectionContainer}>
-                {data.product.category.name.toLowerCase().includes("curd") && (
-                    <TouchableOpacity
-                        style={[styles.sizeButton, selectedSize === 500 ? styles.selectedSizeButton : styles.unselectedSizeButton]}
-                        onPress={() => handleSizeSelection(1)}
-                    >
-                        <Text style={[styles.sizeButtonText, selectedSize === 500 ? styles.selectedSizeText : styles.unselectedSizeText]}>
-                            500 gm
-                        </Text>
-                    </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                    style={[styles.sizeButton, data.quantity === 1 ? styles.selectedSizeButton : styles.unselectedSizeButton]}
-                    onPress={() => handleSizeSelection(1)}
-                >
-                    <Text style={[styles.sizeButtonText, data.quantity === 1 ? styles.selectedSizeText : styles.unselectedSizeText]}>
-                        1 {data.product.category.name.toLowerCase().includes("ghee") ? 'kg' : 'LTR'}
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.sizeButton, data.quantity === 2 ? styles.selectedSizeButton : styles.unselectedSizeButton]}
-                    onPress={() => handleSizeSelection(2)}
-                >
-                    <Text style={[styles.sizeButtonText, data.quantity === 2 ? styles.selectedSizeText : styles.unselectedSizeText]}>
-                        2 {data.product.category.name.toLowerCase().includes("ghee") ? 'kg' : 'LTR'}
-                    </Text>
-                </TouchableOpacity>
-                {data.product.category.name.toLowerCase().includes("milk") ? (
-                    <TouchableOpacity
-                        style={[styles.sizeButton, data.quantity === 2.5 ? styles.selectedSizeButton : styles.unselectedSizeButton]}
-                        onPress={() => handleSizeSelection(2.5)}
-                    >
-                        <Text style={[styles.sizeButtonText, data.quantity === 2.5 ? styles.selectedSizeText : styles.unselectedSizeText]}>
-                            2.5 LTR
-                        </Text>
-                    </TouchableOpacity>
-                ) : null}
+                {data.map((item,index) => {
+                    return (
+                        <TouchableOpacity
+                            key={index}
+                            style={[styles.sizeButton, selectQuantity === item.quantity ? styles.selectedSizeButton : styles.unselectedSizeButton]}
+                            onPress={() => handleSizeSelection(item.quantity)}
+                        >
+                            <Text style={[styles.sizeButtonText, selectQuantity === item.quantity ? styles.selectedSizeText : styles.unselectedSizeText]}>
+                                {item.quantity}
+                            </Text>
+                        </TouchableOpacity>
+                    )
+                })}
+
             </View>
         </Card>
     );
@@ -173,7 +155,8 @@ const styles = StyleSheet.create({
         gap: scaleMargin(8),
     } as ViewStyle,
     sizeButton: {
-        flex: 1,
+        // flex: 1,
+        width: scaleWidth(90),
         padding: scalePadding(8),
         borderRadius: scaleWidth(5),
         alignItems: 'center',

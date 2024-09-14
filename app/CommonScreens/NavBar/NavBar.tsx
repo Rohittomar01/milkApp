@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { TextInput, ScrollView, TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-native';
-import { Icon, Assets, Image, Card, Picker, View } from 'react-native-ui-lib';
+import { Icon, Assets, Image, Card, Picker, View, Avatar } from 'react-native-ui-lib';
 import { useRouter } from 'expo-router';
 import _ from "lodash";
 import Menu from './Menu/Menu';
 import Notification from './Notification/Notification';
 import { getData, ServerURL } from '../../Services/ServerServices';
 import { capitalizeEachWord, scaleFont, scaleHeight, scaleMargin, scalePadding, scaleWidth } from '../../Global/Global';
-
+import LogoSvg from "../../../assets/logoSvg.svg"
 
 interface Product {
   _id: string;
@@ -79,9 +79,10 @@ export default function NavBar() {
       <Card style={styles.card}>
         <View style={styles.innerContainer}>
           <Menu />
-          <Image
+          <Avatar
             source={require('../../../assets/splash.png')}
-            style={styles.logo}
+            imageStyle={{ height: scaleHeight(58), width: scaleWidth(68) }}
+            containerStyle={{ marginRight: scaleMargin(20), marginBottom: scaleMargin(25), marginTop: scaleMargin(10) }}
           />
           <Notification />
         </View>
@@ -115,7 +116,7 @@ export default function NavBar() {
                 <Card
                   onPress={() => router.push({
                     pathname: "Screens/User/ProductDetails/ProductDetails",
-                    params: { productId: JSON.stringify(item._id) }
+                    params: { productData: JSON.stringify(item)}
                   })}
                   key={item._id}
                   elevation={6}
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   logo: {
-    width: width * 0.18,
+    width: width * 0.2,
     height: height * 0.1,
   },
   searchContainer: {

@@ -55,7 +55,7 @@ interface CartItem {
     discount: number;
     quantity: number;
     image: string;
-    total_days: string[];
+    week_days: string[];
     auto_renewal: boolean;
     total_price: number;
     rating: number;
@@ -63,7 +63,12 @@ interface CartItem {
     deliveryAddress: string;
     subscription_started_at?: string;
     subscription_ended_at?: string;
-    plant_type: string;
+    plan_type: string;
+    item_type: string;
+    calculatedPrice: number;
+    total_days: number;
+    items: number;
+    productDetails_id: string;
 }
 
 export default function AddToCart() {
@@ -80,18 +85,10 @@ export default function AddToCart() {
         }
     };
 
-    const getLocalStorageData = async () => {
-        const authData = await AsyncStorage.getItem("@auth")
-        console.log("AuthData", authData)
-    }
-
+   
     useEffect(() => {
         fetchCartItems();
         fetchProducts();
-        getLocalStorageData();
-
-
-
     }, []);
 
     const fetchCartItems = async () => {
@@ -103,9 +100,7 @@ export default function AddToCart() {
             console.error("Error fetching cart items:", error);
         }
     };
-
-    const totalCartPrice = cartItems.reduce((total, item) => total + item.total_price, 0);
-    const cartItemsLength = cartItems.length;
+    console.log("add to cart data ",cartItems)
 
     return (
         <SafeAreaView className="flex-1">

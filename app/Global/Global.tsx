@@ -21,6 +21,7 @@ export const color_DarkGreen = "#00684A"
 export const color_red = "#dc2f02"
 export const color_gray = "#9E9E9E"
 export const color_lightBlue = "#D1E9F6"
+export const theme_color = "#065725"
 
 export const capitalizeEachWord = (text: string) => {
     return text

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Image, StyleSheet, ImageStyle, ViewStyle } from 'react-native';
 import { Carousel } from 'react-native-ui-lib';
 import _ from 'lodash';
@@ -26,18 +26,32 @@ interface Item {
     discount: number;
     quantity: number;
     image: string;
+    total_price?: string;
+    items?: number;
+    plan_type: string;
+    week_days: string[];
+    subscription_started_at?: Date;
+    subscription_ended_at?: Date;
 }
 
 interface HomeCarouselProps {
-    data: Item[];
+    data: Item;
 }
 
 const ProductDetailsCarousel: React.FC<HomeCarouselProps> = ({ data }) => {
+
+    const [productImageData, setProducImageData] = useState<Item[]>([data])
+
+
+    useEffect(() => {
+        setProducImageData([data])
+    }, [data])
     const renderItem = (item: Item, index: number): JSX.Element => (
         <View key={index} style={styles.itemContainer}>
             <Image source={{ uri: `${ServerURL}/images/${item.image}` }} style={styles.image} />
         </View>
     );
+
 
     return (
         <View style={styles.container}>
@@ -49,7 +63,7 @@ const ProductDetailsCarousel: React.FC<HomeCarouselProps> = ({ data }) => {
                 containerMarginHorizontal={scaleMargin(10)}
                 containerPaddingVertical={scalePadding(10)}
             >
-                {_.map(data, (item: Item, index: number) => renderItem(item, index))}
+                {_.map(productImageData, (item: Item, index: number) => renderItem(item, index))}
             </Carousel>
         </View>
     );

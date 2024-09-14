@@ -35,8 +35,7 @@ export default function MapLocation() {
 
     const { addressData } = useLocalSearchParams();
 
-    console.log("addresssssss",addressData)
-  
+
     const [address, setAddress] = useState<Address>(addressData ? JSON.parse(addressData as string) : []);
     const [permisionStatus, setPermissionStatus] = useState<string>("")
     const [getuserLocation, setGetUserLocation] = useState(null)

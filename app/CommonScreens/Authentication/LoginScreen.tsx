@@ -4,6 +4,7 @@ import { Button } from 'react-native-ui-lib';
 import { useForm, Controller } from 'react-hook-form';
 import { router } from 'expo-router';
 import { postData } from '../../Services/ServerServices';
+import { theme_color } from '../../Global/Global';
 
 const LoginScreen = () => {
   const [message, setMessage] = useState(null);
@@ -23,7 +24,6 @@ const LoginScreen = () => {
     if (data.mobileNumber) {
       try {
         const result = await postData("users/checkUserExistence", { mobileNumber: data.mobileNumber })
-        // console.log(result)
         if (result.status === 1) {
           router.push({ pathname: "CommonScreens/Authentication/Verification", params: { signUpData: JSON.stringify(result), otp: JSON.stringify(otp) } });
           alert(otp);
@@ -43,7 +43,7 @@ const LoginScreen = () => {
 
   return (
     <View className="flex h-full justify-center items-center bg-white p-6">
-      <Image source={require("../../../assets/splash.png")} className="w-36 h-36 mb-4 object-contain mt-[-12vh]" />
+      <Image source={require("../../../assets/splash.png")} className="w-[154px] h-[150px] mb-4 object-contain mt-[-12vh]" />
       <Text className="text-xl font-bold mb-4">Welcome to DUDHADI</Text>
       <Text className="mb-8">Login with Mobile Number</Text>
       <View >
@@ -70,7 +70,7 @@ const LoginScreen = () => {
       </View>
 
       <View className='w-full mt-6'>
-        <Button label="Send Verification Code" onPress={handleSubmit(onSubmit)} className="bg-green-900 py-2 px-4 rounded-full w-full" />
+        <Button label="Send Verification Code" style={{ backgroundColor: theme_color }} onPress={handleSubmit(onSubmit)} className="py-2 px-4 rounded-full w-full" />
       </View>
       <View className='mt-4 flex flex-row space-x-1'>
         <Text>If this is your first visit,</Text>

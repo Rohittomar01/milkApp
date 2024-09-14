@@ -6,6 +6,8 @@ import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { Button, Text, TouchableOpacity, DateTimePicker } from 'react-native-ui-lib';
 import { router } from 'expo-router';
 import { postData } from '../../../Services/ServerServices';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { theme_color } from '../../../Global/Global';
 
 interface productData {
     _id: string;
@@ -29,8 +31,24 @@ interface productData {
     image: string;
     total_price?: string;
     items?: number;
+    plan_type: string;
+    week_days: string[];
     subscription_started_at?: Date;
     subscription_ended_at?: Date;
+}
+interface userData {
+    message: string;
+    signIn: {
+        __v: number;
+        _id: string;
+        createdAt: string;
+        email: string;
+        gender: string;
+        mobileNumber: string;
+        name: string;
+        updatedAt: string;
+    };
+    success: boolean;
 }
 
 interface Props {
@@ -38,27 +56,47 @@ interface Props {
 }
 
 
+
+
 const DeliveryForm: React.FC<Props> = ({ data }) => {
+
+    const [UserData, setUserData] = useState<userData | null>(null);
     const currentDate = new Date();
     const monthsToAdd = 1;
     const endDate = new Date(currentDate);
     endDate.setMonth(currentDate.getMonth() + monthsToAdd);
 
+
+
     const { control, handleSubmit, setValue, watch } = useForm({
         defaultValues: {
             deliveryShift: 'Morning',
             items: data.items ? data.items : 1,
-            plant_type: 'Daily',
-            total_days: [] as string[],
+            plan_type: data.items ? data?.plan_type : 'Daily',
+            week_days: data.items ? data.week_days as string[] : [] as string[],
             subscription_started_at: data.subscription_started_at ? new Date(data.subscription_started_at) : new Date(),
             subscription_ended_at: data.subscription_ended_at ? new Date(data.subscription_ended_at) : endDate,
         },
     });
-    const planType = watch('plant_type');
+
+
+    const planType = watch('plan_type');
     const quantity = watch('items');
-    const days = watch('total_days');
+    const days = watch('week_days');
     const [alternateDaysToggle, setAlternateDaysToggle] = useState<boolean>(true);
     const [totalPrice, setTotalPrice] = useState<number>(data.price);
+    const fetchUserData = async () => {
+        try {
+            const userData = await AsyncStorage.getItem("@auth");
+            if (userData) {
+                setUserData(JSON.parse(userData));
+            } else {
+                console.log("No user data found");
+            }
+        } catch (error) {
+            console.error("Error retrieving user data:", error);
+        }
+    };
 
     useEffect(() => {
         updateDays(planType);
@@ -67,54 +105,63 @@ const DeliveryForm: React.FC<Props> = ({ data }) => {
     useEffect(() => {
         const flexiblePrice = quantity * (data.price - data.discount);
         setTotalPrice(flexiblePrice);
+        fetchUserData();
     }, [quantity, data.price]);
 
     const updateDays = (planType: string) => {
         if (planType === 'Daily') {
-            setValue('total_days', ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+            setValue('week_days', ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
         } else if (planType === 'Alternate Days') {
-            setValue('total_days', alternateDaysToggle ? ['Sun', 'Tue', 'Thu', 'Sat'] : ['Mon', 'Wed', 'Fri']);
+            setValue('week_days', alternateDaysToggle ? ['Sun', 'Tue', 'Thu', 'Sat'] : ['Mon', 'Wed', 'Fri',]);
         } else {
-            setValue('total_days', []);
+            setValue('week_days', []);
         }
     };
 
-    const handleDayPress = (day: string) => {
-        if (planType === 'Custom') {
-            const newDays = days.includes(day)
-                ? days.filter((d: string) => d !== day)
-                : [...days, day];
-            setValue('total_days', newDays);
-        }
-    };
+    // const handleDayPress = (day: string) => {
+    //     if (planType === 'Custom') {
+    //         const newDays = days.includes(day)
+    //             ? days.filter((d: string) => d !== day)
+    //             : [...days, day];
+    //         setValue('week_days', newDays);
+    //     }
+    // };
 
     const handleAlternateDaysPress = () => {
         if (planType === 'Alternate Days') {
             setAlternateDaysToggle(!alternateDaysToggle);
-            setValue('total_days', !alternateDaysToggle ? ['Sun', 'Tue', 'Thu', 'Sat'] : ['Mon', 'Wed', 'Fri']);
+            setValue('week_days', !alternateDaysToggle ? ['Sun', 'Tue', 'Thu', 'Sat'] : ['Mon', 'Wed', 'Fri']);
         }
     };
 
-    const isDayDisabled = (day: string) => {
-        if (planType === 'Daily') return true;
-        if (planType === 'Alternate Days') return !days.includes(day);
-        return false;
-    };
+    // const isDayDisabled = (day: string) => {
+    //     if (planType === 'Daily') return true;
+    //     if (planType === 'Alternate Days') return days.includes(day);
+    //     return false;
+    // };
 
     const onSubmit = async (formData: any) => {
-        const product_id: string = data._id
-        const total_price = totalPrice
-        const submitted_by = "user"
-        const user_id = 1
-        const submittedData = { ...formData, total_price, product_id, user_id, submitted_by };
-        console.log(submittedData);
-        try {
-            const response = await postData("addtocart/addtocarts_add", submittedData);
-            alert(response.message)
-            router.push("AddToCart")
-        } catch (error) {
-            console.error(error)
+        if (UserData && UserData.signIn._id) {
+            const product_id: string = data._id
+            const total_price = totalPrice
+            const submitted_by = "user"
+            const user_id = UserData && UserData.signIn._id;
+            const total_days = formData.plant_type === "Daily" ? 30 : 15;
+            const calculatedPrice = formData.plant_type === "Daily" ? totalPrice * 30 : total_price * 15;
+            const submittedData = { ...formData, total_price, product_id, total_days, user_id, calculatedPrice, submitted_by };
+            console.log(submittedData);
+            try {
+                const response = await postData("addtocart/addtocarts_add", submittedData);
+                alert(response.message)
+                router.push("AddToCart")
+            } catch (error) {
+                console.error(error)
+            }
         }
+        else {
+            router.push("CommonScreens/Authentication/LoginScreen")
+        }
+
     };
 
     return (
@@ -176,11 +223,11 @@ const DeliveryForm: React.FC<Props> = ({ data }) => {
                 <View className="p-6 bg-white mt-2">
                     <Text className="text-lg font-bold mb-2">Plan Type</Text>
                     <Controller
-                        name="plant_type"
+                        name="plan_type"
                         control={control}
                         render={({ field: { onChange, value } }) => (
                             <View className="flex-row mb-4">
-                                {['Daily', 'Alternate Days', 'Custom'].map((type) => (
+                                {['Daily', 'Alternate Days'].map((type) => (
                                     <TouchableOpacity
                                         key={type}
                                         onPress={() => {
@@ -196,7 +243,7 @@ const DeliveryForm: React.FC<Props> = ({ data }) => {
                         )}
                     />
                     <Controller
-                        name="total_days"
+                        name="week_days"
                         control={control}
                         render={({ field: { value } }) => (
                             <View className="flex-row flex-wrap">
@@ -206,14 +253,15 @@ const DeliveryForm: React.FC<Props> = ({ data }) => {
                                         onPress={() => {
                                             if (planType === 'Alternate Days') {
                                                 handleAlternateDaysPress();
-                                            } else {
-                                                handleDayPress(day);
                                             }
+                                            // else {
+                                            //     handleDayPress(day);
+                                            // }
                                         }}
-                                        disabled={isDayDisabled(day)}
-                                        className={`py-2 px-4 m-1 rounded-full ${isDayDisabled(day) ? 'bg-green-800' : value.includes(day) ? 'bg-green-800' : 'bg-gray-500'}`}
+                                        disabled={value.includes(day)}
+                                        className={`py-2 px-4 m-1 rounded-full  ${value.includes(day) ? 'bg-green-800' : 'bg-gray-500'}`}
                                     >
-                                        <Text className={`text-white ${isDayDisabled(day) ? 'text-white' : ''}`}>{day}</Text>
+                                        <Text className="text-white">{day}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -272,7 +320,7 @@ const DeliveryForm: React.FC<Props> = ({ data }) => {
                 <Text className="text-sm text-gray-400">Pure A2 Buffalo Milk: Powerhouse of Nutrition</Text>
             </View>
             <View className="p-4 bg-white">
-                <Button label="Add to cart" className="bg-black" onPress={handleSubmit(onSubmit)} />
+                <Button label="Add to cart" style={{ backgroundColor: theme_color }} onPress={handleSubmit(onSubmit)} />
             </View>
         </View>
     );

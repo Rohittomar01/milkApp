@@ -3,7 +3,11 @@ import { Dimensions, TouchableOpacity, ScrollView } from 'react-native';
 import { View, Text, Button, Checkbox, Card } from 'react-native-ui-lib';
 import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import useSubscriptionStore from '../../../store/Products/useSubscription';
+import { postData } from '../../../Services/ServerServices';
+import useOrderStore from '../../../store/Products/useOrders';
+
 
 // for Responsive screen
 const windowWidth = Dimensions.get('window').width;
@@ -25,6 +29,9 @@ interface FormValues {
 
 export default function Payment_Details() {
   const router = useRouter()
+  const { order, setOrder } = useOrderStore();
+  const { subscription, setSubscription } = useSubscriptionStore()
+  const { amount } = useLocalSearchParams()
   const { control, handleSubmit, setValue } = useForm<FormValues>({
     defaultValues: {
       paymentMethods: {
@@ -48,9 +55,29 @@ export default function Payment_Details() {
     setValue(`paymentMethods.${name}`, true);
   };
 
-  const onSubmit = (data: FormValues) => {
-    console.log('Selected payment method:', data.paymentMethods);
-    router.push("Screens/User/Payment/PaymentSuccess")
+  const onSubmit = async (data: FormValues) => {
+
+    try {
+      if (subscription) {
+        const response = await postData('subscription/add_subscriptions', subscription);
+        if (response) {
+          alert(response.message)
+          router.push("Screens/User/Payment/PaymentSuccess");
+          setSubscription([])
+        }
+      }
+      if (order) {
+        const response = await postData('order/add_orders', order);
+        if (response) {
+          alert(response.message)
+          router.push("Screens/User/Payment/PaymentSuccess");
+          setOrder([])
+        }
+      }
+
+    } catch (error) {
+      console.log("error during payment submit subscription data", error)
+    }
   };
 
   return (
@@ -250,7 +277,7 @@ export default function Payment_Details() {
       >
         <View>
           <Text className="text-lg font-semibold">Total Payable</Text>
-          <Text className="text-2xl text-green-700 font-bold mb-7">₹599</Text>
+          <Text className="text-2xl text-green-700 font-bold mb-7">₹{amount}</Text>
         </View>
         <Button
           backgroundColor="#365E32"

@@ -5,7 +5,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import useCategoryStore from '../../../store/useCategory';
 import { ServerURL } from '../../../Services/ServerServices';
-import { calculateDiscountPercentage } from '../../../Global/Global';
+import { calculateDiscountPercentage, theme_color } from '../../../Global/Global';
 import { capitalizeEachWord, color_gray, color_green, scaleFont, scaleMargin } from '../../../Global/Global';
 
 
@@ -29,6 +29,7 @@ interface CardItem {
   discount: number;
   quantity: number;
   image: string;
+  item_type: string;
 }
 
 interface PopularProductsProps {
@@ -50,7 +51,6 @@ const PopularProducts: React.FC<PopularProductsProps> = ({ heading, data }) => {
   const renderCards = useCallback(({ item }: { item: CardItem }) => {
     const unit = item.product.category.name.toLowerCase().includes("ghee") ? 'lit' : 'kg';
     const isOutOfStock = item.stock === 0;
-
     return (
       <Card
         disabled={isOutOfStock}
@@ -58,7 +58,7 @@ const PopularProducts: React.FC<PopularProductsProps> = ({ heading, data }) => {
           if (!isOutOfStock) {
             router.push({
               pathname: "Screens/User/ProductDetails/ProductDetails",
-              params: { productData: JSON.stringify(item) }
+              params: { productId: JSON.stringify(item.productId) }
             });
           }
         }}
@@ -119,11 +119,11 @@ const PopularProducts: React.FC<PopularProductsProps> = ({ heading, data }) => {
             if (!isOutOfStock) {
               router.push({
                 pathname: "Screens/User/ProductDetails/ProductDetails",
-                params: { productData: JSON.stringify(item) }
+                params: { productId: JSON.stringify(item.productId) }
               });
             }
           }}
-          style={{ marginTop: 8, backgroundColor: isOutOfStock ? '#D1D5DB' : '#000', paddingVertical: 8, borderRadius: 6 }}
+          style={{ marginTop: 8, backgroundColor: isOutOfStock ? '#D1D5DB' : theme_color, paddingVertical: 8, borderRadius: 6 }}
         >
           <Text style={{ color: '#FFF', textAlign: 'center' }}>Add</Text>
         </TouchableOpacity>

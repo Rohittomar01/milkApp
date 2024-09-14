@@ -24,7 +24,7 @@ const Menu = () => {
                     </TouchableOpacity>
                 </View>
                 <View className='w-full h-full bg-slate-500'>
-                        <MenuItems />
+                    <MenuItems />
                 </View>
             </Modal>
         </View>

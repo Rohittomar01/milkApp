@@ -26,16 +26,23 @@ interface Product {
     discount: number;
     quantity: number;
     image: string;
-    total_price: number;
+    total_price?: string;
+    items?: number;
+    plan_type: string;
+    week_days: string[];
+    subscription_started_at?: Date;
+    subscription_ended_at?: Date;
 }
 
 export default function ProdductDetails() {
-    const { productData, addtoCartData }: any = useLocalSearchParams();
+
+    const { productId, addtoCartData }: any = useLocalSearchParams();
     const [products, setProducts] = useState<Product[]>([]);
     const [filteredCards, setFilteredCards] = useState<Product[]>([]);
-    const [Data, setData] = useState<Product[]>([productData ? JSON.parse(productData) : []]);
+    // const [Data, setData] = useState<Product[]>([productData ? JSON.parse(productData) : []]);
     const [addtoCart_Data, setAddtoCart_Data] = useState<Product[]>([addtoCartData ? JSON.parse(addtoCartData) : []]);
-    const [productQuantity, setProductQuantity] = useState<number>(Data[0].quantity)
+    const [productQuantity, setProductQuantity] = useState<number>(1)
+    const [productDetailsData, setProductDetailsData] = useState<Product | null>(addtoCartData && [addtoCartData ? JSON.parse(addtoCartData) : []])
 
 
     useEffect(() => {
@@ -52,43 +59,52 @@ export default function ProdductDetails() {
     };
 
     useEffect(() => {
-        if (Data && !addtoCartData) {
-            if (Data[0]._id && products.length > 0) {
+        if (productId && !addtoCartData) {
+            if (productId && products.length > 0) {
                 const filtered = products.filter(data => {
-                    return data._id == Data[0]._id || data.quantity == productQuantity;
+                    return data.productId == JSON.parse(productId)
                 });
                 setFilteredCards(filtered);
             }
         }
 
-        else if (addtoCartData && products.length > 0 && productQuantity) {
-            const filtered = products.filter(data => {
-                return data._id == Data[0]._id || data.quantity == productQuantity;
-            });
-            setFilteredCards(filtered);
-        }
+        // else if (addtoCartData && products.length > 0 && productQuantity) {
+        //     const filtered = products.filter(data => {
+        //         return data._id == Data[0]._id || data.quantity == productQuantity;
+        //     });
+        //     setFilteredCards(filtered);
+        // }
         else if (addtoCartData && !productQuantity) {
             setFilteredCards(addtoCart_Data)
         }
 
 
-    }, [Data, products, productQuantity]);
+    }, [products]);
+
+    // console.log("filtered data ", filteredCards)
 
     return (
         <ScrollView className=' bg-blue-50'>
-            <View>
-                <ProductDetailsCarousel data={filteredCards} />
-            </View>
+            {productDetailsData && (
+                <View>
+                    <ProductDetailsCarousel data={productDetailsData} />
+                </View>
+            )}
             {filteredCards.length > 0 && (
                 <>
                     <View>
-                        <Details_Section setQuantity={setProductQuantity} data={filteredCards[0]} />
-                    </View>
-                    <View>
-                        <DeliveryForm data={filteredCards[0]} />
+                        <Details_Section setProductDetailsData={setProductDetailsData} data={filteredCards} />
                     </View>
                 </>
             )}
+            {productDetailsData && (
+                <>
+                    <View>
+                        <DeliveryForm data={productDetailsData} />
+                    </View>
+                </>
+            )}
+
 
         </ScrollView>
     );
